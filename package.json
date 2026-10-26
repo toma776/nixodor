@@ -1,0 +1,16 @@
+{
+  "name": "nixodor-brain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "nixodor.ro — site public randat din Brain, cu panoul /manage (standard Brain /manage v1)",
+  "engines": {"node": ">=24"},
+  "scripts": {
+    "start": "node src/server.mjs",
+    "crawl": "node scripts/crawl.mjs",
+    "analyze": "node scripts/analyze.mjs",
+    "import": "node scripts/import.mjs",
+    "scan": "node scripts/scan.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}

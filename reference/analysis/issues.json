@@ -1,0 +1,22 @@
+[
+ {
+  "page": "/despre-nixodor.html",
+  "impact": "mediu",
+  "issue": "1 imagini fără text alternativ"
+ },
+ {
+  "page": "/",
+  "impact": "mediu",
+  "issue": "6 imagini fără text alternativ"
+ },
+ {
+  "page": "/nixodor-felina.html",
+  "impact": "mare",
+  "issue": "text „lorem ipsum” ascuns (alb pe alb) în conținut"
+ },
+ {
+  "page": "/nixodor-felina.html",
+  "impact": "mediu",
+  "issue": "8 imagini fără text alternativ"
+ }
+]

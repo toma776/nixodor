@@ -1,0 +1,330 @@
+{
+ "source": "https://www.portalia.ro/brand/nixodor/",
+ "fetched_at": "2026-10-23T14:43:01.783Z",
+ "products": [
+  {
+   "portalia_id": 10,
+   "url": "https://www.portalia.ro/bioactivator-fosa-septica-nixodor-5l-p10/",
+   "name": "Bioactivator fosa septica Nixodor, 5L",
+   "line": "bioactivator-fosa-septica",
+   "size": "5 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 9,
+   "url": "https://www.portalia.ro/bioactivator-fosa-septica-nixodor-1l-p9/",
+   "name": "Bioactivator fosa septica Nixodor, 1L",
+   "line": "bioactivator-fosa-septica",
+   "size": "1 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 709,
+   "url": "https://www.portalia.ro/nixodor-degresor-solutie-bioenzimatica-anti-grasime-pentru-conducte-fose-si-chiuvete-1l-p709/",
+   "name": "Nixodor Degresor - solutie bioenzimatica anti-grasime pentru conducte, fose si chiuvete, 1L",
+   "line": "degresor",
+   "size": "1 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 649,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-pets-solutie-pentru-mirosurile-neplacute-de-la-animalele-de-companie-1l-p649/",
+   "name": "Nixodor Aer Curat Pets solutie pentru mirosurile neplacute de la animalele de companie, 1L",
+   "line": "aer-curat-pets",
+   "size": "1 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 683,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-pets-lavanda-solutie-pentru-mirosurile-neplacute-de-la-animalele-de-companie-1l-p683/",
+   "name": "Nixodor Aer Curat Pets Lavanda solutie pentru mirosurile neplacute de la animalele de companie, 1L",
+   "line": "aer-curat-pets",
+   "size": "1 L",
+   "scent": "lavanda",
+   "pack": null
+  },
+  {
+   "portalia_id": 216,
+   "url": "https://www.portalia.ro/bioactivator-fosa-septica-nixodor-10l-p216/",
+   "name": "Bioactivator fosa septica Nixodor, 10L",
+   "line": "bioactivator-fosa-septica",
+   "size": "10 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 675,
+   "url": "https://www.portalia.ro/nisip-pentru-pisici-sac-10kg-nixodor-felina-p675/",
+   "name": "Nisip pentru pisici, sac 10kg, Nixodor Felina",
+   "line": "felina",
+   "size": "10 kg",
+   "scent": null,
+   "pack": "sac"
+  },
+  {
+   "portalia_id": 697,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-pets-pin-solutie-pentru-mirosurile-neplacute-de-la-animalele-de-companie-1l-p697/",
+   "name": "Nixodor Aer Curat Pets Pin solutie pentru mirosurile neplacute de la animalele de companie, 1L",
+   "line": "aer-curat-pets",
+   "size": "1 L",
+   "scent": "pin",
+   "pack": null
+  },
+  {
+   "portalia_id": 663,
+   "url": "https://www.portalia.ro/nisip-pentru-pisici-sac-5kg-nixodor-felina-p663/",
+   "name": "Nisip pentru pisici, sac 5kg, Nixodor Felina",
+   "line": "felina",
+   "size": "5 kg",
+   "scent": null,
+   "pack": "sac"
+  },
+  {
+   "portalia_id": 710,
+   "url": "https://www.portalia.ro/nixodor-degresor-solutie-bioenzimatica-anti-grasime-pentru-conducte-fose-si-chiuvete-5l-p710/",
+   "name": "Nixodor Degresor - solutie bioenzimatica anti-grasime pentru conducte, fose si chiuvete, 5L",
+   "line": "degresor",
+   "size": "5 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 626,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-solutie-pentru-mirosurile-neplacute-din-gospodarie-1l-p626/",
+   "name": "Nixodor Aer Curat solutie pentru mirosurile neplacute din gospodarie, 1L",
+   "line": "aer-curat",
+   "size": "1 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 665,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-pets-solutie-pentru-mirosurile-neplacute-de-la-animalele-de-companie-5l-p665/",
+   "name": "Nixodor Aer Curat Pets solutie pentru mirosurile neplacute de la animalele de companie, 5L",
+   "line": "aer-curat-pets",
+   "size": "5 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 627,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-solutie-pentru-mirosurile-neplacute-din-gospodarie-5l-p627/",
+   "name": "Nixodor Aer Curat solutie pentru mirosurile neplacute din gospodarie, 5L",
+   "line": "aer-curat",
+   "size": "5 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 664,
+   "url": "https://www.portalia.ro/nisip-pentru-pisici-sac-2-5kg-nixodor-felina-p664/",
+   "name": "Nisip pentru pisici, sac 2.5kg, Nixodor Felina",
+   "line": "felina",
+   "size": "2.5 kg",
+   "scent": null,
+   "pack": "sac"
+  },
+  {
+   "portalia_id": 684,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-pets-lavanda-solutie-pentru-mirosurile-neplacute-de-la-animalele-de-companie-5l-p684/",
+   "name": "Nixodor Aer Curat Pets Lavanda solutie pentru mirosurile neplacute de la animalele de companie, 5L",
+   "line": "aer-curat-pets",
+   "size": "5 L",
+   "scent": "lavanda",
+   "pack": null
+  },
+  {
+   "portalia_id": 677,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-lavanda-solutie-pentru-mirosurile-neplacute-din-gospodarie-1l-p677/",
+   "name": "Nixodor Aer Curat Lavanda solutie pentru mirosurile neplacute din gospodarie, 1L",
+   "line": "aer-curat",
+   "size": "1 L",
+   "scent": "lavanda",
+   "pack": null
+  },
+  {
+   "portalia_id": 678,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-lavanda-solutie-pentru-mirosurile-neplacute-din-gospodarie-5l-p678/",
+   "name": "Nixodor Aer Curat Lavanda solutie pentru mirosurile neplacute din gospodarie, 5L",
+   "line": "aer-curat",
+   "size": "5 L",
+   "scent": "lavanda",
+   "pack": null
+  },
+  {
+   "portalia_id": 624,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-solutie-pentru-mirosurile-neplacute-din-gospodarie-500ml-p624/",
+   "name": "Nixodor Aer Curat solutie pentru mirosurile neplacute din gospodarie, 500ml",
+   "line": "aer-curat",
+   "size": "500 ml",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 696,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-pets-pin-solutie-pentru-mirosurile-neplacute-de-la-animalele-de-companie-5l-p696/",
+   "name": "Nixodor Aer Curat Pets Pin solutie pentru mirosurile neplacute de la animalele de companie, 5L",
+   "line": "aer-curat-pets",
+   "size": "5 L",
+   "scent": "pin",
+   "pack": null
+  },
+  {
+   "portalia_id": 148,
+   "url": "https://www.portalia.ro/bioactivator-fosa-septica-nixodor-25l-p148/",
+   "name": "Bioactivator fosa septica Nixodor, 25L",
+   "line": "bioactivator-fosa-septica",
+   "size": "25 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 676,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-lavanda-solutie-pentru-mirosurile-neplacute-din-gospodarie-500ml-p676/",
+   "name": "Nixodor Aer Curat Lavanda solutie pentru mirosurile neplacute din gospodarie, 500ml",
+   "line": "aer-curat",
+   "size": "500 ml",
+   "scent": "lavanda",
+   "pack": null
+  },
+  {
+   "portalia_id": 703,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-pin-solutie-pentru-mirosurile-neplacute-din-gospodarie-1l-p703/",
+   "name": "Nixodor Aer Curat Pin solutie pentru mirosurile neplacute din gospodarie, 1L",
+   "line": "aer-curat",
+   "size": "1 L",
+   "scent": "pin",
+   "pack": null
+  },
+  {
+   "portalia_id": 558,
+   "url": "https://www.portalia.ro/accelerator-de-compost-1l-nixodor-p558/",
+   "name": "Accelerator de compost, 1L, Nixodor",
+   "line": "accelerator-compost",
+   "size": "1 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 574,
+   "url": "https://www.portalia.ro/accelerator-de-compost-5l-nixodor-p574/",
+   "name": "Accelerator de compost, 5L, Nixodor",
+   "line": "accelerator-compost",
+   "size": "5 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 711,
+   "url": "https://www.portalia.ro/nixodor-degresor-solutie-bioenzimatica-anti-grasime-pentru-conducte-fose-si-chiuvete-10l-p711/",
+   "name": "Nixodor Degresor - solutie bioenzimatica anti-grasime pentru conducte, fose si chiuvete, 10L",
+   "line": "degresor",
+   "size": "10 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 672,
+   "url": "https://www.portalia.ro/aer-curat-bioactivator-impotriva-mirosurilor-pentru-uz-industrial-5l-nixodor-p672/",
+   "name": "Aer Curat - bioactivator impotriva mirosurilor pentru uz industrial",
+   "line": "aer-curat-industrial",
+   "size": null,
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 702,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-pin-solutie-pentru-mirosurile-neplacute-din-gospodarie-5l-p702/",
+   "name": "Nixodor Aer Curat Pin solutie pentru mirosurile neplacute din gospodarie, 5L",
+   "line": "aer-curat",
+   "size": "5 L",
+   "scent": "pin",
+   "pack": null
+  },
+  {
+   "portalia_id": 628,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-solutie-pentru-mirosurile-neplacute-din-gospodarie-10l-p628/",
+   "name": "Nixodor Aer Curat solutie pentru mirosurile neplacute din gospodarie, 10L",
+   "line": "aer-curat",
+   "size": "10 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 666,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-pets-solutie-pentru-mirosurile-neplacute-de-la-animalele-de-companie-10l-p666/",
+   "name": "Nixodor Aer Curat Pets solutie pentru mirosurile neplacute de la animalele de companie, 10L",
+   "line": "aer-curat-pets",
+   "size": "10 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 690,
+   "url": "https://www.portalia.ro/aer-curat-lavanda-bioactivator-impotriva-mirosurilor-pentru-uz-industrial-5l-nixodor-p690/",
+   "name": "Aer Curat Lavanda - bioactivator impotriva mirosurilor pentru uz industrial, 5L, Nixodor",
+   "line": "aer-curat-industrial",
+   "size": "5 L",
+   "scent": "lavanda",
+   "pack": null
+  },
+  {
+   "portalia_id": 679,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-lavanda-solutie-pentru-mirosurile-neplacute-din-gospodarie-10l-p679/",
+   "name": "Nixodor Aer Curat Lavanda solutie pentru mirosurile neplacute din gospodarie, 10L",
+   "line": "aer-curat",
+   "size": "10 L",
+   "scent": "lavanda",
+   "pack": null
+  },
+  {
+   "portalia_id": 685,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-pets-lavanda-solutie-pentru-mirosurile-neplacute-de-la-animalele-de-companie-10l-p685/",
+   "name": "Nixodor Aer Curat Pets Lavanda solutie pentru mirosurile neplacute de la animalele de companie, 10L",
+   "line": "aer-curat-pets",
+   "size": "10 L",
+   "scent": "lavanda",
+   "pack": null
+  },
+  {
+   "portalia_id": 575,
+   "url": "https://www.portalia.ro/accelerator-de-compost-10l-nixodor-p575/",
+   "name": "Accelerator de compost, 10L, Nixodor",
+   "line": "accelerator-compost",
+   "size": "10 L",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 695,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-pets-pin-solutie-pentru-mirosurile-neplacute-de-la-animalele-de-companie-10l-p695/",
+   "name": "Nixodor Aer Curat Pets Pin solutie pentru mirosurile neplacute de la animalele de companie, 10L",
+   "line": "aer-curat-pets",
+   "size": "10 L",
+   "scent": "pin",
+   "pack": null
+  },
+  {
+   "portalia_id": 557,
+   "url": "https://www.portalia.ro/accelerator-de-compost-250ml-nixodor-p557/",
+   "name": "Accelerator de compost, 250ml, Nixodor",
+   "line": "accelerator-compost",
+   "size": "250 ml",
+   "scent": null,
+   "pack": null
+  },
+  {
+   "portalia_id": 667,
+   "url": "https://www.portalia.ro/nixodor-aer-curat-solutie-pentru-mirosurile-neplacute-de-la-cai-5l-p667/",
+   "name": "Nixodor Aer Curat solutie pentru mirosurile neplacute de la cai, 5L",
+   "line": "aer-curat-cai",
+   "size": "5 L",
+   "scent": null,
+   "pack": null
+  }
+ ]
+}

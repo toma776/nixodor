@@ -1,0 +1,44 @@
+[
+ {
+  "page": "/",
+  "name": "Probiotic",
+  "buy_url": "https://www.portalia.ro/probiotic-activ-pentru-imunitatea-pisicilor-100ml-nixodor-p202/",
+  "image": "continut/probiotic.png",
+  "claim": "Digestie sănătoasă. Fără mirosuri de la animalele de companie"
+ },
+ {
+  "page": "/",
+  "name": "Felina",
+  "buy_url": "https://www.portalia.ro/nisip-pentru-pisici-5kg-nixodor-felina-p269/",
+  "image": "continut/felina.png",
+  "claim": "Elimină mirosul de litieră. Devine îngrășământ."
+ },
+ {
+  "page": "/",
+  "name": "Aer Curat",
+  "buy_url": "https://www.portalia.ro/nixodor-aer-curat-pets-bioactivator-pentru-mirosurile-neplacute-de-la-animalele-de-companie-1l-p649/",
+  "image": "continut/aer-curat.png",
+  "claim": "Fără miros de animale în gospodărie sau apartament."
+ },
+ {
+  "page": "/",
+  "name": "Bioactivator",
+  "buy_url": "https://www.portalia.ro/bioactivator-fosa-septica-nixodor-5l-nourivit-p10/",
+  "image": "continut/bioactivator.png",
+  "claim": ""
+ },
+ {
+  "page": "/nixodor-felina.html",
+  "name": "NIX ODOR Felina 10 Kg",
+  "buy_url": "https://www.portalia.ro/nisip-pentru-pisici-10kg-nixodor-felina-p270/",
+  "image": "continut/nixodor_felina_10kg.png",
+  "claim": "Nixodor Felina este un produs care absoarbe mirosurile neplacute, coaguleaza materia lichida si formeaza bulgari care pot fi indepartati usor din litiera. Nu provoaca alergii nici pentru om si nici pentru animale."
+ },
+ {
+  "page": "/nixodor-felina.html",
+  "name": "NIX ODOR Felina 5 Kg",
+  "buy_url": "https://www.portalia.ro/nisip-pentru-pisici-5kg-nixodor-felina-p269/",
+  "image": "continut/nixodor_felina_5kg.png",
+  "claim": "NIXODOR Felina iubeste animalele si vrea sa le ofere pisicilor si proprietarilor de pisici o viata mai frumoasa. Este un produs 100% natural fara aditivi sau compusi chimici. lorem ipsum dolor sit amet lorem"
+ }
+]

@@ -1,0 +1,151 @@
+[
+ {
+  "path": "/contact.html",
+  "file": "contact.html",
+  "title": "Contact NIXODOR",
+  "description": "NIXODOR - Bioactivatorul care te scapa de mirosul neplacut",
+  "h1": [],
+  "h2": [
+   "Date de contact"
+  ],
+  "images": [],
+  "videos": [],
+  "words": 100
+ },
+ {
+  "path": "/de-unde-cumpar.html",
+  "file": "de-unde-cumpar.html",
+  "title": "De unde cumpar NIXODOR",
+  "description": "NIXODOR - Bioactivatorul care te scapa de mirosul neplacut",
+  "h1": [],
+  "h2": [
+   "Lista locatiilor Nixodor"
+  ],
+  "images": [],
+  "videos": [],
+  "words": 96
+ },
+ {
+  "path": "/despre-nixodor.html",
+  "file": "despre-nixodor.html",
+  "title": "Despre NIXODOR",
+  "description": "NIXODOR - Bioactivatorul care te scapa de mirosul neplacut",
+  "h1": [],
+  "h2": [
+   "Cine suntem noi?"
+  ],
+  "images": [
+   {
+    "src": "continut/nourivit.png",
+    "alt": ""
+   }
+  ],
+  "videos": [],
+  "words": 322
+ },
+ {
+  "path": "/",
+  "file": "index.html",
+  "title": "NIXODOR Bioactivator",
+  "description": "NIXODOR - Bioactivatorul care te scapa de mirosul neplacut",
+  "h1": [
+   "Bioactivatorul care te scapa de mirosul neplacut de fosa septica"
+  ],
+  "h2": [
+   "Bioactivatorul care te scapa de mirosul neplacut de fosa septica",
+   "Ce spun clientii despre Bioactivatorul NIX ODOR"
+  ],
+  "images": [
+   {
+    "src": "continut/bg-sat-o.png",
+    "alt": ""
+   },
+   {
+    "src": "continut/100-natural.png",
+    "alt": ""
+   },
+   {
+    "src": "continut/probiotic.png",
+    "alt": ""
+   },
+   {
+    "src": "continut/felina.png",
+    "alt": ""
+   },
+   {
+    "src": "continut/aer-curat.png",
+    "alt": ""
+   },
+   {
+    "src": "continut/bioactivator.png",
+    "alt": ""
+   }
+  ],
+  "videos": [
+   "0X2T_3UG4iE"
+  ],
+  "words": 261
+ },
+ {
+  "path": "/nixodor-felina.html",
+  "file": "nixodor-felina.html",
+  "title": "NIXODOR Felina",
+  "description": "NIXODOR - Bioactivatorul care te scapa de mirosul neplacut",
+  "h1": [
+   "Nisip natural pentru pisici, absoarbe mirosurile neplacute"
+  ],
+  "h2": [
+   "NIX ODOR Felina. Solutia 100% naturala pentru litiera.",
+   "Ce spun clientii despre NIX ODOR Felina"
+  ],
+  "images": [
+   {
+    "src": "continut/badge-1.png",
+    "alt": ""
+   },
+   {
+    "src": "continut/badge-2.png",
+    "alt": ""
+   },
+   {
+    "src": "continut/badge-3.png",
+    "alt": ""
+   },
+   {
+    "src": "continut/badge-4.png",
+    "alt": ""
+   },
+   {
+    "src": "continut/main-banner-felina.png",
+    "alt": ""
+   },
+   {
+    "src": "continut/nixodor_felina_10kg.png",
+    "alt": ""
+   },
+   {
+    "src": "continut/nixodor_felina_5kg.png",
+    "alt": ""
+   },
+   {
+    "src": "continut/nixodor_felina.png",
+    "alt": ""
+   }
+  ],
+  "videos": [],
+  "words": 280
+ },
+ {
+  "path": "/termeni-si-conditii.html",
+  "file": "termeni-si-conditii.html",
+  "title": "Termeni si conditii de utilizare",
+  "description": "NIXODOR - Bioactivatorul care te scapa de mirosul neplacut",
+  "h1": [],
+  "h2": [
+   "Termeni si conditii de utilizare a site-ului www.nixodor.ro"
+  ],
+  "images": [],
+  "videos": [],
+  "words": 2546
+ }
+]

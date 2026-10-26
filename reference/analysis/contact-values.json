@@ -1,0 +1,40 @@
+{
+ "phone": [
+  {
+   "value": "0760759889",
+   "count": 1
+  },
+  {
+   "value": "0760 759 889",
+   "count": 2
+  },
+  {
+   "value": "021 200 52 00",
+   "count": 1
+  }
+ ],
+ "email": [
+  {
+   "value": "office@portalia.ro",
+   "count": 2
+  },
+  {
+   "value": "support@nixodor.net.",
+   "count": 2
+  }
+ ],
+ "company": [
+  {
+   "value": "SC Instant SoftNet SRL",
+   "count": 1
+  },
+  {
+   "value": "Instant Softnet SRL",
+   "count": 1
+  },
+  {
+   "value": "INSTANT SOFTNET SRL",
+   "count": 28
+  }
+ ]
+}
