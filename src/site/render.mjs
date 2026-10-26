@@ -279,7 +279,8 @@ function variantCard(ctx, g, v, {grouped}) {
 
 function gama(ctx, g) {
   const accent = ACCENT[g.accent] ?? 'green';
-  const hero = ctx.media(g.hero_image_id ?? g.card_image_id);
+  // eroul paginii de produs arată mereu ambalajul gamei (la fel pe toate gamele)
+  const hero = ctx.media(g.card_image_id ?? g.hero_image_id);
   const name = g.short_name ?? g.name;
   const variants = ctx.within('Variante', 'variantele gamei', () =>
     ctx.query('produse', {where: {line_id: g.id}, order: 'scent, unit, size, pack', scope: `game:${g.id}`, reason: 'variantele gamei'}));
