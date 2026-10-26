@@ -24,7 +24,7 @@ if (!process.env.SUPABASE_URL && /postgres\.([a-z0-9]{20})[:@]/.test(process.env
   process.env.SUPABASE_URL = `https://${process.env.DATABASE_URL.match(/postgres\.([a-z0-9]{20})[:@]/)[1]}.supabase.co`;
 export const SERVERLESS = !!process.env.VERCEL;
 
-export function createApp({dbFile = process.env.DATABASE_URL ?? join(DATA, 'brain.db'), mediaDir = join(DATA, 'media'), live = SERVERLESS ? 'inline' : true, log} = {}) {
+export function createApp({dbFile = process.env.DATABASE_URL || join(DATA, 'brain.db'), mediaDir = join(DATA, 'media'), live = SERVERLESS ? 'inline' : true, log} = {}) {
   const db = openDb(dbFile);
   const store = createStore(db);
   const remote = db.dialect === 'pg' && process.env.SUPABASE_URL && process.env.SUPABASE_SECRET_KEY;
