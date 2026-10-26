@@ -4,13 +4,17 @@
   "private": true,
   "type": "module",
   "description": "nixodor.ro — site public randat din Brain, cu panoul /manage (standard Brain /manage v1)",
-  "engines": {"node": ">=24"},
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "start": "node src/server.mjs",
     "crawl": "node scripts/crawl.mjs",
     "analyze": "node scripts/analyze.mjs",
     "import": "node scripts/import.mjs",
     "scan": "node scripts/scan.mjs",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "design": "node scripts/design/2026-10-26-homepage.mjs && node scripts/design/2026-10-26-benefit-icons.mjs && node scripts/design/2026-10-26-felina-variante.mjs && node scripts/design/2026-10-26-aer-curat-pets.mjs",
+    "setup": "npm run import && npm run design"
   }
 }

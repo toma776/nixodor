@@ -3,9 +3,10 @@
 Site-ul nixodor.ro, randat pe server dintr-un Brain (SQLite), construit după **standardul Brain /manage v1** (15.10.2026). Node 24, `node:sqlite`, fără dependențe.
 
 ```bash
-npm run import    # snapshot → data/brain.db (reluabil, determinist) + scanare
+npm run setup     # import din snapshot + modificările de design din scripts/design/ (o instalare nouă)
+npm run import    # doar importul: snapshot → data/brain.db (reluabil, determinist) + scanare
 npm start         # http://localhost:4310/  ·  Brain: http://localhost:4310/manage/
-npm test          # testele obligatorii din §5 (23), pe datele importate
+npm test          # testele obligatorii din §5 (23) + verificarea iconițelor, pe datele importate
 ```
 
 Datele brute se refac cu `npm run crawl && npm run analyze` (→ `reference/`). Documentul de entități, cu presupunerile de lucru de confirmat: [docs/entitati.md](docs/entitati.md).
