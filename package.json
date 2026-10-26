@@ -14,7 +14,7 @@
     "import": "node scripts/import.mjs",
     "scan": "node scripts/scan.mjs",
     "test": "node --test test/*.test.mjs",
-    "design": "node scripts/design/2026-10-26-homepage.mjs && node scripts/design/2026-10-26-benefit-icons.mjs && node scripts/design/2026-10-26-felina-variante.mjs && node scripts/design/2026-10-26-aer-curat-pets.mjs && node scripts/design/2026-10-26-bioactivator-eticheta.mjs && node scripts/design/2026-10-26-hero-brand.mjs && node scripts/design/2026-10-26-game-portalia.mjs && node scripts/design/2026-10-26-descrieri-proprii.mjs",
+    "design": "node scripts/design/2026-10-26-homepage.mjs && node scripts/design/2026-10-26-benefit-icons.mjs && node scripts/design/2026-10-26-felina-variante.mjs && node scripts/design/2026-10-26-aer-curat-pets.mjs && node scripts/design/2026-10-26-bioactivator-eticheta.mjs && node scripts/design/2026-10-26-hero-brand.mjs && node scripts/design/2026-10-26-game-portalia.mjs && node scripts/design/2026-10-26-descrieri-proprii.mjs && node scripts/design/2026-10-26-intrebari-frecvente.mjs",
     "setup": "npm run import && npm run design",
     "build:public": "node scripts/build-public.mjs",
     "blob:upload": "node scripts/blob.mjs upload",

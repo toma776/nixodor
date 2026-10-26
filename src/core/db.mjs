@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS login_attempts (ip TEXT NOT NULL, at TEXT NOT NULL);
 `;
 
 const SQL_TYPE = {int: 'INTEGER', boolean: 'INTEGER', number: 'REAL', money: 'REAL', ref: 'INTEGER', image: 'INTEGER'};
-export const JSON_TYPES = new Set(['list', 'links', 'texts', 'table', 'multiselect']);
+export const JSON_TYPES = new Set(['list', 'links', 'texts', 'table', 'multiselect', 'faq']);
 export const nowIso = () => new Date().toISOString();
 
 export function columnsOf(e) {

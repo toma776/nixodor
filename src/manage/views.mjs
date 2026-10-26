@@ -169,7 +169,7 @@ export function createViews(app) {
   // --- formularul ------------------------------------------------------------------------
   const linksToText = (items, depth = 0) => (items ?? []).map(it => `${'- '.repeat(depth)}${it.label ?? ''} | ${it.to ?? ''}${it.button ? ' | buton' : ''}\n${linksToText(it.children, depth + 1)}`).join('');
 
-  const WIDE = new Set(['textarea', 'richtext', 'list', 'links', 'table', 'texts', 'multiselect']);
+  const WIDE = new Set(['textarea', 'richtext', 'list', 'links', 'table', 'texts', 'multiselect', 'faq']);
   // câmpurile de imagine arată doar fișierele potrivite: imagini sau, pentru etichete, PDF-uri
   const mediaFits = (f, m) => /pdf/i.test(f.key) ? m.mime === 'application/pdf' : /^image\//.test(m.mime);
 
@@ -192,6 +192,7 @@ export function createViews(app) {
       }
       case 'list': input = `<textarea id="${id}" name="${f.key}" data-type="list" rows="3" placeholder="Câte unul pe rând"${ro}>${esc((value ?? []).join('\n'))}</textarea>`; break;
       case 'links': input = `<textarea id="${id}" name="${f.key}" data-type="links" rows="6" class="mono"${ro}>${esc(linksToText(value))}</textarea>`; after = '<small class="hint">Câte un rând: <code>Etichetă | destinație</code>. Destinația poate fi <code>ref:pagini:3</code>, <code>/blog/</code> sau o adresă externă. Copiii încep cu <code>- </code>, iar butonul se marchează cu <code>| buton</code>.</small>'; break;
+      case 'faq': input = `<textarea id="${id}" name="${f.key}" data-type="faq" rows="12"${ro}>${esc((value ?? []).map(x => `${x.q}\n${x.a}`).join('\n\n'))}</textarea>`; after = '<small class="hint">Câte o întrebare pe primul rând, răspunsul pe rândurile de sub ea; între două întrebări lași un rând gol.</small>'; break;
       case 'table': case 'texts': case 'multiselect': input = `<textarea id="${id}" name="${f.key}" data-type="json" rows="4" class="mono"${ro}>${esc(value ? JSON.stringify(value, null, 1) : '')}</textarea>`; break;
       case 'int': case 'number': case 'money': input = `<input id="${id}" name="${f.key}" type="number" step="${f.type === 'int' ? 1 : 'any'}" value="${esc(value ?? '')}" data-type="number"${ro}>`; break;
       case 'date': input = `<input id="${id}" name="${f.key}" type="date" value="${esc(value ?? '')}"${ro}>`; break;

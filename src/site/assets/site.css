@@ -393,3 +393,16 @@ mark.de-validat { background: #ffe08a; padding: 2px 8px; border-radius: 6px; fon
 /* pozele de produs de la Portalia (.webp) au fundal alb, nu transparent: albul se contopește cu fundalul colorat,
    iar umbra conturului (care ar desena un dreptunghi) dispare */
 .product-hero .hero-pack img[src*=".webp"], .hero-tile .pic img[src*=".webp"], .line-card .pic img[src*=".webp"], .related .card img[src*=".webp"], .cards .card img[src*=".webp"] { mix-blend-mode: multiply; filter: none; }
+
+/* întrebări frecvente pe pagina de produs */
+.faq-wrap { max-width: 880px; }
+.faq { display: flex; flex-direction: column; gap: 12px; }
+.faq details { background: #fff; border: 1px solid var(--line); border-radius: var(--r); padding: 0 22px; transition: border-color .2s, box-shadow .2s; }
+.faq details[open] { border-color: var(--accent-bg); box-shadow: var(--shadow-1); }
+.faq summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; font-weight: 600; font-size: 1.05rem; color: var(--ink); cursor: pointer; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); font-size: 1.2rem; font-weight: 600; transition: transform .2s; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; }
+.faq details p { margin: 0 0 20px; color: var(--ink-2); line-height: 1.7; }
+@media (prefers-reduced-motion: reduce) { .faq details, .faq summary::after { transition: none; } }

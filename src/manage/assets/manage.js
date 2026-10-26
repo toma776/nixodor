@@ -50,6 +50,8 @@ function formData(form) {
     else if (t === 'list') data[el.name] = el.value.split('\n').map(s => s.trim()).filter(Boolean);
     else if (t === 'links') data[el.name] = parseLinks(el.value);
     else if (t === 'json') data[el.name] = el.value.trim() ? JSON.parse(el.value) : null;
+    // întrebări frecvente: blocuri despărțite de un rând gol; primul rând e întrebarea, restul răspunsul
+    else if (t === 'faq') data[el.name] = el.value.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean).map(b => { const [q, ...a] = b.split('\n'); return {q: q.trim(), a: a.join(' ').trim()}; });
     else if (t === 'int' || t === 'number') data[el.name] = el.value === '' ? null : Number(el.value);
     else data[el.name] = el.value;
   }

@@ -131,6 +131,8 @@ export function createStore(db) {
         case 'number': case 'money': v = v == null ? null : Number(String(v).replace(',', '.')); if (Number.isNaN(v)) errors.push({field: f.key, error: 'trebuie să fie un număr'}); break;
         case 'boolean': v = v == null ? null : (v === true || v === 1 || v === '1' || v === 'true' || v === 'on') ? 1 : 0; break;
         case 'richtext': v = sanitizeContent(v); break;
+        // întrebări frecvente: [{q, a}], text simplu; perechile goale cad
+        case 'faq': v = v == null ? null : JSON.stringify((typeof v === 'string' ? JSON.parse(v) : v).map(x => ({q: String(x?.q ?? '').trim(), a: String(x?.a ?? '').trim()})).filter(x => x.q && x.a)); break;
         case 'slug': v = v == null ? null : f.allowEmpty && v === '' ? '' : slugify(v) || null; break;
         case 'email': v = v == null ? null : String(v).trim().toLowerCase(); if (v && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v)) errors.push({field: f.key, error: 'adresă de email invalidă'}); break;
         case 'url': v = v == null ? null : String(v).trim(); if (v && !/^(https?:\/\/|\/|ref:)/.test(v)) errors.push({field: f.key, error: 'adresa trebuie să înceapă cu https://, / sau ref:'}); break;

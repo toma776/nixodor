@@ -331,6 +331,13 @@ function gama(ctx, g) {
   const about = g.description || details || avail ? `<section class="section soft" id="despre"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Despre produs</p><h2>${esc(g.name)}</h2></div></div>
     <div class="about${details ? '' : ' single'}">${g.description || avail ? `<div class="prose">${ctx.rich(g.description)}${avail}</div>` : ''}${details ? `<div class="details">${details}</div>` : ''}</div></div></section>` : '';
 
+  // întrebări frecvente: deschise la clic, plus datele structurate FAQPage (Google și motoarele AI le citesc direct)
+  const faq = (g.faq ?? []).filter(x => x.q && x.a);
+  const faqLd = faq.length ? JSON.stringify({'@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(x => ({'@type': 'Question', name: x.q, acceptedAnswer: {'@type': 'Answer', text: x.a}}))}).replace(/</g, '\\u003c') : '';
+  const faqSection = faq.length ? `<section class="section" id="intrebari"><div class="wrap faq-wrap"><div class="section-head"><div><p class="eyebrow">Întrebări frecvente</p><h2>Ce ne întreabă oamenii despre ${esc(name)}</h2></div></div>
+    <div class="faq">${faq.map((x, i) => `<details${i === 0 ? ' open' : ''}><summary>${esc(x.q)}</summary><p>${esc(x.a)}</p></details>`).join('')}</div></div></section>
+    <script type="application/ld+json">${faqLd}</script>` : '';
+
   let scripts = '';
   const clip = g.video_id ? (scripts = PLAYER_JS, `<section class="section dark on-dark"><div class="wrap video-block"><div><p class="eyebrow">Video</p><h2>${esc(name)}, pe scurt</h2></div>
     <a class="player" href="https://www.youtube.com/watch?v=${esc(g.video_id)}" data-yt="${esc(g.video_id)}" data-title="${esc(g.name)}" target="_blank" rel="noopener">${hero ? img(hero, 'pack', {alt: ''}) : ''}<span class="play"><span class="visually-hidden">Pornește clipul</span></span><span class="cap" aria-hidden="true">Vezi clipul</span></a></div></section>`) : '';
@@ -347,7 +354,7 @@ function gama(ctx, g) {
       ${pdf ? `<a class="btn big secondary" href="${esc(pdf.url)}" target="_blank" rel="noopener">Eticheta (PDF)<span class="visually-hidden"> (se deschide într-o filă nouă)</span></a>` : about ? `<a class="btn big secondary" href="#despre">Despre produs</a>` : ''}</div></div>
       ${hero ? `<div class="hero-pack">${img(hero, '', {eager: true})}</div>` : ''}</div></section>
     ${about}${clip}
-    ${reviews(ctx, g.id, `Ce spun clienții despre ${name}`, {eyebrow: 'Recenzii'})}
+    ${reviews(ctx, g.id, `Ce spun clienții despre ${name}`, {eyebrow: 'Recenzii'})}${faqSection}
     ${articles.length ? `<section class="section"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Blog</p><h2>Articole despre ${esc(name)}</h2></div></div><div class="grid g3">${articles.map(a => articleCard(ctx, a)).join('')}</div></div></section>` : ''}
     ${producer ? `<section class="section"><div class="wrap"><div class="tech">${img(ctx.media(producer.badge_id), '', {alt: producer.technology ?? producer.name})}
       <div><p class="eyebrow">Tehnologia din spate</p><h2>${esc(producer.technology ? `Tehnologia ${producer.technology}` : producer.name)}</h2><p>${esc(name)} este produs de ${esc(producer.name)}, ${esc(producer.country)}.</p></div>

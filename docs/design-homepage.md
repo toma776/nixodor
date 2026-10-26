@@ -87,3 +87,7 @@ De verificat cu clientul:
 ## Descrieri proprii (ciorne, 26.10.2026)
 
 Descrierile celor 8 game, rescrise ca text NIXODOR (`scripts/design/2026-10-26-descrieri-proprii.mjs`), ca să nu mai fie identice cu cele de pe Portalia: aceleași fapte, organizate pe problemă, cum funcționează, unde îl folosești, ce câștigi. Compoziția, dozarea, aplicarea, păstrarea și siguranța rămân cele de pe etichetă (informații tehnice, scurte). Așteaptă aprobarea în panou („Așteaptă publicarea”).
+
+## Întrebări frecvente pe paginile de produs (ciorne, 26.10.2026)
+
+Câmp nou pe Game, „Întrebări frecvente” (tip `faq`: listă de întrebare + răspuns). În panou se scrie ca text: întrebarea pe primul rând, răspunsul dedesubt, un rând gol între ele. Pe site apare după recenzii, ca listă care se deschide la clic, cu datele structurate `FAQPage` (Google și motoarele AI le citesc direct). Cele 41 de întrebări pentru cele 8 game (`scripts/design/2026-10-26-intrebari-frecvente.mjs`) au răspunsuri luate doar din etichetă și din descriere; așteaptă aprobarea.

@@ -62,6 +62,7 @@ export const ENTITIES = [
       {key: 'application', label: 'Aplicare', type: 'richtext'},
       {key: 'storage', label: 'Păstrare și valabilitate', type: 'richtext'},
       {key: 'safety', label: 'Instrucțiuni de siguranță', type: 'richtext'},
+      {key: 'faq', label: 'Întrebări frecvente', type: 'faq'},
       {key: 'hero_image_id', label: 'Imaginea principală', type: 'image'},
       {key: 'card_image_id', label: 'Imaginea cardului', type: 'image'},
       {key: 'label_pdf_id', label: 'Eticheta (PDF)', type: 'image'},
