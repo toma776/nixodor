@@ -4,7 +4,8 @@ import {createHash} from 'node:crypto';
 import {readFileSync, existsSync, statSync} from 'node:fs';
 import {join, extname, normalize} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {createApp} from './app.mjs';
+import {createApp, ROOT, DATA} from './app.mjs';
+import {createBlobSync, loadToken} from './core/blobsync.mjs';
 import {createAuth} from './manage/auth.mjs';
 import {createApi, readBody} from './manage/api.mjs';
 import {createViews} from './manage/views.mjs';
@@ -155,9 +156,57 @@ export function createHandler(app) {
   };
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === normalize(process.argv[1])) {
-  const app = createApp({log: m => console.log(new Date().toISOString(), m)});
-  app.start();
+// Local, cu cheia Blob în .env.local (npx vercel env pull .env.local), serverul ține baza la zi cu site-ul online:
+//   - la pornire și la fiecare 20 s aduce versiunea online, dacă s-a schimbat și local nu e nimic neurcat;
+//   - la 3 s după o salvare din panoul local, urcă baza; site-ul online o folosește de la următoarea cerere.
+// Dacă s-a lucrat în ambele locuri, nu suprascrie nimic: panoul arată un mesaj cu cele două variante.
+// NIXODOR_BLOB_SYNC=0 oprește sincronizarea.
+async function main() {
+  const log = m => console.log(new Date().toISOString(), m);
+  const syncOn = process.env.NIXODOR_BLOB_SYNC !== '0' && loadToken(ROOT);
+  const blob = syncOn ? createBlobSync({dataDir: DATA}) : null;
+  const status = {on: syncOn, conflict: false, error: null, last: null};
+  let app, handler, pushTimer = null, busy = false;
+
+  const open = () => {
+    app = createApp({log});
+    app.blob = status;
+    app.store.onChange(() => { if (blob) { clearTimeout(pushTimer); pushTimer = setTimeout(tick, 3000); } });
+    app.start();
+    handler = createHandler(app);
+  };
+  const pull = async () => { app?.stop(); app = null; try { await blob.pull(); } finally { open(); } };
+  // un pas de sincronizare; o singură operație cu Blob-ul o dată
+  const exclusive = async fn => { if (busy) return; busy = true; try { await fn(); status.error = null; } catch (e) { status.error = e.message; log(`sincronizare: ${e.message}`); } finally { busy = false; } };
+  const tick = () => exclusive(async () => {
+    const s = await blob.state(app?.db);
+    status.conflict = s.remoteChanged && s.dirty;
+    if (status.conflict) return log('sincronizare: s-a lucrat și local, și online; nu suprascriu nimic (vezi panoul)');
+    if (s.remoteChanged) { await pull(); status.last = new Date().toISOString(); return log('sincronizare: am adus modificările făcute online'); }
+    if (s.dirty) {
+      try { await blob.push(app?.db); status.last = new Date().toISOString(); log('sincronizare: modificările locale sunt pe site-ul online'); }
+      catch (e) { if (e.conflict) status.conflict = true; else throw e; }
+    }
+  });
+
+  if (blob) await tick();
+  if (!app) open();
+  if (blob) setInterval(tick, 20000).unref();
+
   const port = +(process.env.PORT ?? 4310);
-  createServer(createHandler(app)).listen(port, () => console.log(`NIXODOR: http://localhost:${port}/  ·  Brain: http://localhost:${port}/manage/`));
+  createServer(async (req, res) => {
+    // alegerea din mesajul de conflict: păstrează varianta online sau pe cea locală
+    if (blob && req.method === 'POST' && (req.url === '/api/manage/blob/keep-online' || req.url === '/api/manage/blob/keep-local')) {
+      if (!createAuth(app.db).user(req)?.perms.has('settings.write')) { res.writeHead(403); return res.end(); }
+      await exclusive(async () => {
+        if (req.url.endsWith('online')) await pull(); else await blob.push(app.db, {force: true});
+        status.conflict = false; status.last = new Date().toISOString();
+      });
+      res.writeHead(status.error ? 500 : 200, {'content-type': 'application/json'});
+      return res.end(JSON.stringify({ok: !status.error, error: status.error}));
+    }
+    return handler(req, res);
+  }).listen(port, () => console.log(`NIXODOR: http://localhost:${port}/  ·  Brain: http://localhost:${port}/manage/${blob ? '  ·  sincronizat cu site-ul online' : ''}`));
 }
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === normalize(process.argv[1])) main();

@@ -36,10 +36,16 @@ Site-ul și panoul rulează pe Vercel (proiectul `nixodor`, echipa dwf3): https:
 - Imaginile de la import sunt statice, în `public/media`, refăcute cu `npm run build:public`. Cele urcate din panou stau în Blob.
 - Cheia Blob vine pe calculator cu `npx vercel env pull .env.local`. Fișierul nu intră în git.
 
-Când lucrezi local, sincronizezi baza cu cea online:
+**Local și online sunt sincronizate singure** cât rulează `npm start` (cu `.env.local` adus de `npx vercel env pull .env.local`):
+
+- ce salvezi în panoul local ajunge pe site-ul online în câteva secunde;
+- ce se salvează în panoul online apare local în cel mult 20 de secunde;
+- dacă s-a lucrat în ambele locuri între două sincronizări, nu se suprascrie nimic: panoul local arată un mesaj în care alegi varianta care rămâne (cealaltă se păstrează în `data/backup/` sau în Istoricul online).
+
+Starea sincronizării stă în `data/.blob-sync.json`. `NIXODOR_BLOB_SYNC=0 npm start` pornește serverul fără sincronizare. Comenzile manuale rămân pentru scripturi rulate cu serverul oprit:
 
 ```bash
-npm run blob:download          # aduce baza online (s-a editat în panoul online); oprește întâi npm start
+npm run blob:download          # aduce baza online (oprește întâi npm start)
 npm run blob:upload            # urcă baza locală; refuză dacă online s-a schimbat de la ultima sincronizare
 npm run blob:upload -- --force # urcă oricum, suprascriind ce s-a editat online
 ```

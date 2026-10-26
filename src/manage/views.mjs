@@ -57,6 +57,16 @@ export function createViews(app) {
     if (e.singleton) { const r = store.list(e.key)[0]; if (r) return eurl(e.key, r.id); }
     return `/manage/entitati/${e.key}/`;
   }
+  // doar pe serverul local cu sincronizare: când s-a lucrat în ambele locuri, alegi ce rămâne
+  function blobBanner() {
+    const b = app.blob;
+    if (!b?.on) return '';
+    if (b.conflict) return `<div class="sync-banner err"><div><b>S-a lucrat și aici, și în panoul online.</b> Ca să nu se piardă nimic, nu am sincronizat. Alege ce variantă rămâne (cealaltă se păstrează în data/backup/ sau în Istoricul online).</div>
+      <div class="actions"><button class="btn ghost" data-post="/api/manage/blob/keep-online">Păstrează varianta online</button><button class="btn" data-post="/api/manage/blob/keep-local">Păstrează varianta de aici</button></div></div>`;
+    if (b.error) return `<div class="sync-banner warn"><b>Sincronizarea cu site-ul online nu a mers:</b> ${esc(b.error)}. Reîncerc singur la fiecare 20 de secunde.</div>`;
+    return '';
+  }
+
   function layout(user, {title, active = ''}, body) {
     const st = sync.status();
     let unsure = 0;
@@ -77,7 +87,7 @@ export function createViews(app) {
 <a href="/manage/entitati/"${active === 'entitati' || BY_KEY[active] ? ' class="on"' : ''}>${icon('grid')}<span>Entități</span></a>
 <p>Instrumente</p>${tools.map(([h, l, k, ic, n, cls]) => `<a href="${h}"${k === active ? ' class="on"' : ''}>${icon(ic)}<span>${l}</span>${n ? `<b class="pill ${cls ?? ''}">${n}</b>` : ''}</a>`).join('')}
 </nav>
-<main class="main"><div id="live-banner" hidden></div>${body}</main></div>
+<main class="main">${blobBanner()}<div id="live-banner" hidden></div>${body}</main></div>
 <script src="/manage/assets/manage.js" defer></script></body></html>`;
   }
 

@@ -334,3 +334,9 @@ body.login { display: grid; place-items: center; min-height: 100vh; background: 
 .add-one { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 10px; color: var(--muted); }
 .add-one:hover { background: var(--teal-50); color: var(--teal-900); }
 .add-one .ic { width: 16px; height: 16px; }
+
+/* sincronizarea panoului local cu site-ul online */
+.sync-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; justify-content: space-between; margin-bottom: 20px; padding: 14px 18px; border-radius: var(--r); border: 1px solid; }
+.sync-banner.err { background: var(--red-50); border-color: #f3c3bd; }
+.sync-banner.warn { background: var(--amber-50); border-color: #f0d79a; }
+.sync-banner > div:first-child { flex: 1 1 360px; }
