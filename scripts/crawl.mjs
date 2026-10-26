@@ -63,6 +63,8 @@ for (const css of [...assets].filter(a => a.endsWith('.css'))) {
 
 // 2. Blog: indexul și taxonomiile vin din API. Conținutul nu: orice câmp randat (content, excerpt,
 //    feed-ul) blochează serverul, așa că paginile articolelor se iau din Wayback Machine (mod id_ = HTML brut).
+// indexul articolelor: doar câmpurile care nu cer randarea conținutului (acelea răspund repede)
+await save('blog-api/posts-index.json', `${BLOG_API}posts?per_page=100&_fields=id,slug,link,title,date,modified,categories,tags,featured_media,author`);
 const index = JSON.parse(await readFile(join(ROOT, 'blog-api/posts-index.json'), 'utf8'));
 for (const t of ['categories', 'tags', 'users']) await save(`blog-api/${t}.json`, `${BLOG_API}${t}?per_page=100`);
 const cdx = JSON.parse((await save('blog/wayback-cdx.json',

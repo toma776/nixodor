@@ -1,9 +1,11 @@
 // Testele de propagare din standard §5 (1–14). Un test pică și când se refac MAI MULTE pagini decât trebuie.
-import {test, after} from 'node:test';
+import {test as nodeTest, after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {freshApp, ADMIN, propagate, sorted, byLegacy, indexed} from './helpers.mjs';
+import {freshApp, ADMIN, propagate, sorted, byLegacy, indexed, SNAPSHOT_SKIP} from './helpers.mjs';
+// testele pe datele importate au nevoie de copia locală a site-ului vechi
+const test = (name, fn) => nodeTest(name, {skip: SNAPSHOT_SKIP}, fn);
 import {createSync} from '../src/core/sync.mjs';
 import {render} from '../src/site/render.mjs';
 import {ROOT} from '../src/app.mjs';

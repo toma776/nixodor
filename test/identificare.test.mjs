@@ -1,10 +1,12 @@
 // Testele de identificare, guvernanță și hartă din standard §5 (15–23).
-import {test, after} from 'node:test';
+import {test as nodeTest, after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync, mkdtempSync, cpSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {freshApp, baseImport, runImport, ADMIN, EDITOR, propagate, byLegacy} from './helpers.mjs';
+import {freshApp, baseImport, runImport, ADMIN, EDITOR, propagate, byLegacy, SNAPSHOT_SKIP} from './helpers.mjs';
+// testele pe datele importate au nevoie de copia locală a site-ului vechi
+const test = (name, fn) => nodeTest(name, {skip: SNAPSHOT_SKIP}, fn);
 import {createApp, ROOT} from '../src/app.mjs';
 import {whereUsed} from '../src/core/whereused.mjs';
 import {inferredGroups} from '../src/manage/api.mjs';
@@ -117,14 +119,14 @@ test('22. Sănătatea hărții: 0 trimiteri rupte și 0 relații obligatorii goa
   assert.deepEqual(h.unused.sort(), ['articole.lines', 'firma.logo_light_id', 'magazine.logo_id']);
 });
 
-test('23. Nicio listă fără scope și fără câmpuri declarate (verificare statică pe ctx.query)', () => {
+nodeTest('23. Nicio listă fără scope și fără câmpuri declarate (verificare statică pe ctx.query)', () => {
   const src = readFileSync(join(ROOT, 'src/site/render.mjs'), 'utf8');
   const calls = [...src.matchAll(/ctx\.query\(([^;]*?)\)(?=[\s.;\[)])/g)].map(m => m[1]);
   assert.ok(calls.length >= 8);
   for (const c of calls) assert.ok(/\b(scope|fields):/.test(c), `listă fără scope/câmpuri: ctx.query(${c.slice(0, 80)})`);
 });
 
-test('Registru: fiecare iconiță de beneficiu din registru are un desen în setul site-ului', async () => {
+nodeTest('Registru: fiecare iconiță de beneficiu din registru are un desen în setul site-ului', async () => {
   const {BY_KEY} = await import('../src/registry/entities.mjs');
   const {ICONS, BENEFIT_ICONS} = await import('../src/site/icons.mjs');
   const options = BY_KEY.beneficii.fields.find(f => f.key === 'icon').options;

@@ -9,7 +9,7 @@ npm start         # http://localhost:4310/  ·  Brain: http://localhost:4310/man
 npm test          # testele obligatorii din §5 (23) + verificarea iconițelor, pe datele importate
 ```
 
-Datele brute se refac cu `npm run crawl && npm run analyze` (→ `reference/`). Documentul de entități, cu presupunerile de lucru de confirmat: [docs/entitati.md](docs/entitati.md).
+**Copia site-ului vechi (`reference/snapshot/`) și baza (`data/`) sunt doar locale, nu în git.** Copia se reface cu `npm run crawl && npm run analyze`, cât timp site-ul vechi și arhiva Wayback a blogului mai sunt online. Fără copie, testele care importă se sar (cu motivul afișat), iar `npm run setup` nu are de unde importa: conținutul curent stă în `data/brain.db`. Documentul de entități, cu presupunerile de lucru de confirmat: [docs/entitati.md](docs/entitati.md).
 
 ## Unde e fiecare regulă din standard
 

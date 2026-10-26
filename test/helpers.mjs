@@ -8,6 +8,10 @@ import {PERMS} from '../src/registry/entities.mjs';
 
 let base = null, importOutput = null;
 
+// Copia site-ului vechi (reference/snapshot/) e doar locală, nu în git. Fără ea, testele care importă se sar.
+export const SNAPSHOT_SKIP = existsSync(join(ROOT, 'reference/snapshot/site/index.html')) ? false
+  : 'lipsește reference/snapshot/ (copia site-ului vechi e doar locală; refă-o cu npm run crawl)';
+
 export function runImport(dbFile, mediaDir, args = []) {
   const out = execFileSync(process.execPath, [join(ROOT, 'scripts/import.mjs'), ...args], {
     env: {...process.env, NIXODOR_DB: dbFile, NIXODOR_MEDIA: mediaDir}, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024

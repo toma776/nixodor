@@ -2,3 +2,4 @@
 /node_modules/
 *.db-wal
 *.db-shm
+/reference/snapshot/
