@@ -46,4 +46,4 @@ npm run blob:upload -- --force # urcă oricum, suprascriind ce s-a editat online
 
 ## Acces la panou
 
-Pe `localhost`, `/manage` intră fără parolă, ca administrator (standard §1.9). Online, deocamdată, intră **oricine are linkul secret** `https://nixodor.vercel.app/manage/?acces=<cheie>`. Linkul pune un cookie valabil un an. Cheia e variabila `NIXODOR_PANEL_KEY` din Vercel (Production): dacă o schimbi și refaci deploy-ul, linkul vechi nu mai merge. Conturile cu parolă rămân posibile (`npm run user -- add <email> "<Nume>" <rol>`), dar nu sunt folosite.
+Pe `localhost`, `/manage` intră fără parolă, ca administrator (standard §1.9). Online, deocamdată, **panoul e deschis oricui** intră pe `https://nixodor.vercel.app/manage/`, fără cont: variabila `NIXODOR_PANEL_OPEN=1` din Vercel (Production). Ca să-l închizi, ștergi variabila și refaci deploy-ul. Conturile cu parolă rămân posibile (`npm run user -- add <email> "<Nume>" <rol>`), dar nu sunt folosite.
