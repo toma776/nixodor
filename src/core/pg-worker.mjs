@@ -8,7 +8,10 @@ pg.types.setTypeParser(1700, v => v === null ? null : Number(v));    // numeric 
 
 const {url, sab, port} = workerData;
 const flag = new Int32Array(sab);
-const client = new pg.Client({connectionString: url, ssl: /localhost|127\.0\.0\.1/.test(url) ? false : {rejectUnauthorized: false}});
+// parametrii SSL din adresă (sslmode=require de la Supabase) ar înlocui setarea de mai jos; îi scoatem și criptăm explicit
+const clean = new URL(url);
+for (const k of ['sslmode', 'sslrootcert', 'supa', 'pgbouncer']) clean.searchParams.delete(k);
+const client = new pg.Client({connectionString: clean.toString(), ssl: /localhost|127\.0\.0\.1/.test(url) ? false : {rejectUnauthorized: false}});
 const ready = client.connect().then(() => client.query(`SET TIME ZONE 'UTC'`));
 
 port.on('message', async ({sql, params}) => {

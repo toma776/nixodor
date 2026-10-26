@@ -14,6 +14,11 @@ export const ROOT = fileURLToPath(new URL('..', import.meta.url));
 export const DATA = process.env.NIXODOR_DATA ?? join(ROOT, 'data');
 const envFile = join(ROOT, '.env.local');
 if (existsSync(envFile)) process.loadEnvFile(envFile);
+// Integrarea oficială Supabase ↔ Vercel pune variabilele sub alte nume; le acceptăm pe ale ei.
+// POSTGRES_URL e pooler-ul (merge de pe Vercel, care nu are IPv6); conexiunea directă nu.
+const env = process.env;
+for (const [ours, ...theirs] of [['DATABASE_URL', 'POSTGRES_URL'], ['SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY'], ['SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL']])
+  if (!env[ours]) { const v = theirs.map(k => env[k]).find(Boolean); if (v) env[ours] = v; }
 // adresa proiectului Supabase se deduce din utilizatorul conexiunii (postgres.<ref>) dacă nu e dată explicit
 if (!process.env.SUPABASE_URL && /postgres\.([a-z0-9]{20})[:@]/.test(process.env.DATABASE_URL ?? ''))
   process.env.SUPABASE_URL = `https://${process.env.DATABASE_URL.match(/postgres\.([a-z0-9]{20})[:@]/)[1]}.supabase.co`;
