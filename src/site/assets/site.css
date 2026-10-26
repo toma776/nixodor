@@ -160,6 +160,28 @@ p { margin: 0 0 1em; }
 }
 @media (max-width: 520px) { .trust ul { grid-template-columns: 1fr; } }
 
+/* eroul de brand: mesajul NIXODOR și gamele, fiecare cu culoarea ei */
+.hero-brand { background: radial-gradient(60% 80% at 85% 20%, rgba(120, 190, 67, .28), transparent 60%), radial-gradient(50% 70% at 100% 100%, rgba(38, 154, 199, .3), transparent 60%), radial-gradient(40% 60% at 55% 110%, rgba(242, 101, 19, .22), transparent 60%), var(--teal-900); }
+.hero-brand::before { display: none; }
+.hero-brand h1 { max-width: 16ch; }
+.hero-tiles { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.hero-tile { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; align-items: center; gap: 18px; padding: 12px 22px 12px 12px; border-radius: var(--r-lg); background: rgba(255, 255, 255, .97); color: var(--ink); text-decoration: none; box-shadow: 0 18px 40px rgba(0, 20, 28, .28); transition: transform .25s, box-shadow .25s; }
+.hero-tile .pic { display: grid; place-items: center; width: 96px; height: 96px; border-radius: 16px; background: var(--accent-bg); overflow: hidden; }
+.hero-tile .pic img { width: 82%; height: 82%; object-fit: contain; filter: drop-shadow(0 8px 10px rgba(0, 30, 40, .18)); transition: transform .3s; }
+.hero-tile .txt { display: flex; flex-direction: column; gap: 2px; line-height: 1.35; }
+.hero-tile strong { font-size: 1.15rem; font-weight: 700; color: var(--accent); }
+.hero-tile .txt span { color: var(--ink-2); font-size: .95rem; }
+.hero-tile .arr { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); font-weight: 700; transition: transform .25s, background .25s, color .25s; }
+.hero-tile:hover { transform: translateY(-3px); box-shadow: 0 24px 50px rgba(0, 20, 28, .34); }
+.hero-tile:hover .pic img { transform: scale(1.06); }
+.hero-tile:hover .arr { background: var(--accent); color: #fff; transform: translateX(3px); }
+.hero-tile:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+@media (min-width: 961px) { .hero-tiles li:nth-child(2) { margin-left: 36px; } .hero-tiles li:nth-child(3) { margin-left: 72px; } }
+@media (max-width: 520px) { .hero-tile { grid-template-columns: 72px minmax(0, 1fr) auto; gap: 12px; padding-right: 14px; } .hero-tile .pic { width: 72px; height: 72px; } }
+@media (prefers-reduced-motion: reduce) { .hero-tile, .hero-tile .pic img, .hero-tile .arr { transition: none; } }
+.trust ul:has(> li:nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 960px) { .trust ul:has(> li:nth-child(3):last-child) { grid-template-columns: 1fr; } }
+
 /* --- secțiuni --- */
 .section { padding: var(--space) 0; }
 .section.soft { background: var(--paper-2); }

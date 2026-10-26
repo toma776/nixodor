@@ -174,6 +174,25 @@ function lineCards(ctx) {
   }).join('')}</div>`;
 }
 
+// Eroul de brand (secțiune hero fără gamă): mesajul NIXODOR în stânga, gamele publicate în dreapta, fiecare cu culoarea ei.
+// Cardurile vin din game (ordinea, numele scurt, prima frază din textul cardului, imaginea), deci o gamă nouă publicată apare singură.
+function brandHero(ctx, s, h) {
+  const bg = ctx.media(s.image_id);
+  const lines = ctx.query('game', {order: 'position, id', fields: ['status', 'position', 'name', 'short_name', 'card_text', 'card_image_id', 'hero_image_id', 'tagline', 'slug', 'accent'], reason: 'gamele din erou'});
+  // doar gamele cu imagine: un card fără produs în poză nu are ce căuta în erou
+  const tiles = lines.filter(l => l.card_image_id ?? l.hero_image_id).map(l => {
+    const link = ctx.link('game', l.id, 'card din erou');
+    if (!link) return '';
+    const line1 = String(l.card_text ?? l.tagline ?? '').split(/(?<=\.)\s/)[0];
+    return `<li><a class="hero-tile accent-${ACCENT[l.accent] ?? 'green'}" href="${esc(link.href)}"><span class="pic">${img(ctx.media(l.card_image_id ?? l.hero_image_id), '', {eager: true, alt: ''})}</span>
+      <span class="txt"><strong>${esc(l.short_name ?? l.name)}</strong><span>${esc(line1)}</span></span><span class="arr" aria-hidden="true">→</span></a></li>`;
+  }).join('');
+  return `<section class="hero hero-brand on-dark">${bg ? `<div class="hero-bg">${img(bg, '', {eager: true, alt: ''})}</div>` : ''}
+    <div class="wrap hero-grid"><div>${s.eyebrow ? `<p class="eyebrow">${esc(s.eyebrow)}</p>` : ''}<${h}>${esc(s.title ?? '')}</${h}>
+    ${s.body ? `<div class="lead">${ctx.rich(s.body)}</div>` : ''}<div class="actions">${buttons(ctx, s.buttons, {first: 'btn big', rest: 'btn big secondary'})}</div></div>
+    ${tiles ? `<ul class="hero-tiles" role="list" aria-label="Produsele NIXODOR">${tiles}</ul>` : ''}</div></section>${trustStrip(ctx, null, s.producer_id)}`;
+}
+
 // Reperele de sub erou: fiecare vine dintr-o entitate (producător, magazine, recenzii, beneficii), nu e text scris de mână.
 function trustStrip(ctx, line, producerId) {
   const items = [];
@@ -186,6 +205,10 @@ function trustStrip(ctx, line, producerId) {
   if (line) {
     const n = ctx.query('recenzii', {where: {line_id: line.id}, scope: `game:${line.id}`, reason: 'numărul de recenzii'}).length;
     if (n) items.push(['talk', `${n} păreri de la clienți`, 'de pe ' + [...new Set(ctx.query('recenzii', {where: {line_id: line.id}, scope: `game:${line.id}`, reason: 'sursele recenziilor'}).map(r => ctx.get('magazine', r.store_id)?.name).filter(Boolean))].join(' și ')]);
+  } else {
+    // eroul de brand: toate recenziile, de la toate gamele
+    const all = ctx.query('recenzii', {fields: ['status', 'store_id', 'line_id'], reason: 'numărul total de recenzii'});
+    if (all.length) items.push(['talk', `${all.length} păreri de la clienți`, 'de pe ' + [...new Set(all.map(r => ctx.get('magazine', r.store_id)?.name).filter(Boolean))].join(' și ')]);
   }
   if (!items.length) return '';
   return `<div class="trust"><div class="wrap"><ul>${items.map(([ic, strong, small]) => `<li><span class="ico">${icon(ic)}</span><span><strong>${esc(strong)}</strong>${esc(small)}</span></li>`).join('')}</ul></div></div>`;
@@ -199,6 +222,7 @@ function pagina(ctx, p) {
     const h = first ? 'h1' : 'h2'; first = false;
     switch (s.kind) {
       case 'hero': {
+        if (!s.line_id) { ogImage ??= ctx.media(s.image_id)?.url; return brandHero(ctx, s, h); }
         const line = ctx.get('game', s.line_id, 'gama prezentată');
         const bg = ctx.media(s.image_id);
         const pack = ctx.media(line?.hero_image_id ?? line?.card_image_id);

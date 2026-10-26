@@ -30,7 +30,8 @@ export function createStore(db) {
   function read(key, id, {draft = false} = {}) {
     const e = entity(key);
     const r = parse(e, q(`SELECT * FROM ${e.table} WHERE id = ?`).get(id));
-    if (r && draft && r.draft) { const {links, ...vals} = r.draft; Object.assign(r, vals); r._links = links; }
+    // valorile din ciornă sunt serializate ca în coloane (butoane, liste, meniuri ca JSON): trec prin același parse
+    if (r && draft && r.draft) { const {links, ...vals} = r.draft; Object.assign(r, parse(e, vals)); r._links = links; }
     return r;
   }
   const singleton = key => { const e = entity(key); return parse(e, q(`SELECT * FROM ${e.table} ORDER BY id LIMIT 1`).get()); };

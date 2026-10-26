@@ -60,3 +60,15 @@ Le-am scris eu pentru redesign. Sunt în secțiunile paginii „Acasă” și se
 - **Paginile interioare** (gamă, Despre, blog etc.) au preluat antetul, subsolul, fonturile și culorile noi. Machetele lor nu sunt încă redesenate.
 - **Imaginile** sunt PNG-urile originale, unele de peste 1 MB. Pentru lansare trebuie WebP și dimensiuni adaptate ecranului.
 - **Fotografia eroului** și cea de la clip sunt din site-ul vechi. Dacă există fotografii proprii, de produs în uz, ar arăta mai bine.
+
+## Eroul de brand (propunere, 26.10.2026)
+
+Eroul nu mai prezintă doar Bioactivatorul. Stânga: mesajul NIXODOR; dreapta: câte un card pentru fiecare gamă publicată (Bioactivator, Felina, Aer Curat Pets), în culoarea ei, cu link spre pagina gamei. Cardurile vin din Game, deci o gamă nouă, publicată și cu imagine, apare singură. Sub erou, reperele sunt la nivel de brand: tehnologia Nourivit, magazinele și toate recenziile.
+
+Texte noi, de aprobat:
+- supratitlu: „Produse bioenzimatice NIXODOR”
+- titlu: „Scapă natural de mirosurile neplăcute”
+- text: „Bacterii și enzime active care descompun sursa mirosului, nu doar îl acoperă. Pentru fosa septică, litiera pisicii și locul unde stau animalele tale.”
+- butoane: „De unde cumpăr”, „Despre NIXODOR”
+
+Stă ca ciornă pe secțiunea „hero” a paginii Acasă (`scripts/design/2026-10-26-hero-brand.mjs`): se vede în previzualizare și ajunge pe site la „Publică”.
