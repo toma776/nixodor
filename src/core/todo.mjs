@@ -68,6 +68,8 @@ export function todo(store) {
   const failed = q(`SELECT COUNT(*) n FROM change_events WHERE status = 'failed'`).get().n;
   if (failed) add('mare', 'propagare', null, null, null, `${failed} propagări eșuate.`);
 
+  // aceeași observație, găsită de două ori în același câmp (ex. emailul scris de două ori în text), apare o singură dată
+  const seen = new Set(), unique = out.filter(t => { const k = `${t.key}:${t.id}:${t.field}:${t.text}`; return !seen.has(k) && seen.add(k); });
   const order = {mare: 0, mediu: 1, mic: 2};
-  return out.sort((a, b) => order[a.impact] - order[b.impact]);
+  return unique.sort((a, b) => order[a.impact] - order[b.impact]);
 }

@@ -1,5 +1,5 @@
 // Panourile /manage: randate la fiecare cerere, fără cache (§3.1), deci arată starea curentă.
-import {ENTITIES, BY_KEY, entity, titleOf, pathOf, relFields, RELATION_TYPES, targetOf} from '../registry/entities.mjs';
+import {ENTITIES, BY_KEY, entity, titleOf, pathOf, relFields, relTable, RELATION_TYPES, targetOf} from '../registry/entities.mjs';
 import {esc} from '../core/content.mjs';
 import {whereUsed} from '../core/whereused.mjs';
 import {todo} from '../core/todo.mjs';
@@ -13,47 +13,102 @@ const CERTAINTY = {confirmed: 'confirmată', inferred: 'dedusă', unverified: 'n
 const fmt = iso => iso ? new Date(iso).toLocaleString('ro-RO', {dateStyle: 'medium', timeStyle: 'short'}) : '—';
 const badge = (s, map = STATUS) => s ? `<span class="badge s-${esc(s)}">${esc(map[s] ?? s)}</span>` : '';
 const eurl = (key, id, tab = '') => `/manage/entitati/${key}/${id}/${tab ? tab + '/' : ''}`;
+// „acum 5 min”, „ieri, 14:20”: pentru listele scurte; data completă rămâne în title
+const ago = iso => {
+  if (!iso) return '—';
+  const d = new Date(iso), min = Math.round((Date.now() - d) / 60000);
+  if (min < 1) return 'acum';
+  if (min < 60) return `acum ${min} min`;
+  if (min < 24 * 60) return `acum ${Math.round(min / 60)} h`;
+  return d.toLocaleDateString('ro-RO', {day: 'numeric', month: 'short'});
+};
+const ACTIONS = {create: 'a creat', update: 'a modificat', publish: 'a publicat', unpublish: 'a retras', draft: 'a salvat în ciornă', delete: 'a șters', archive: 'a arhivat', merge: 'a unit', links: 'a schimbat legăturile', status: 'a schimbat starea', revert: 'a readus', media: 'a urcat'};
+const action = a => ACTIONS[a] ?? a;
+
+// iconițe line style, 24×24, culoarea textului
+const ICONS = {
+  home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  external: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>',
+  map: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="8" r="2.5"/><circle cx="10" cy="18" r="2.5"/><path d="M8.3 7l7.3.7M7 8.3l2.2 7.4M16.4 10l-4.7 6.3"/>',
+  check: '<path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>',
+  source: '<path d="M4 5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 3v5h5M8 13h8M8 17h5"/>',
+  sync: '<path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'
+};
+const icon = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] ?? ''}</svg>`;
 
 export function createViews(app) {
   const {store, sync} = app;
   const graph = createGraph(store);
   const q = sql => store.db.prepare(sql);
 
+  // Meniul: conținutul (tipurile, pe categorii, cu numărul lor) și, separat, instrumentele Brain-ului.
+  // Tipurile cu o singură înregistrare (Date firmă) duc direct la ea.
+  function typeHref(e) {
+    if (e.singleton) { const r = store.list(e.key)[0]; if (r) return eurl(e.key, r.id); }
+    return `/manage/entitati/${e.key}/`;
+  }
   function layout(user, {title, active = ''}, body) {
     const st = sync.status();
-    const nav = [['/manage/', 'Panou', 'panou'], ['/manage/entitati/', 'Entități', 'entitati'], ['/manage/harta/', 'Harta', 'harta'],
-      ['/manage/surse/', 'Surse', 'surse'], ['/manage/surse/legaturi/', 'Legături de verificat', 'legaturi'], ['/manage/propagare/', `Propagare${st.failed ? ` <b class="err">${st.failed}</b>` : ''}`, 'propagare'],
-      ['/manage/istoric/', 'Istoric', 'istoric']];
+    let unsure = 0;
+    for (const e of ENTITIES) for (const rf of relFields(e)) unsure += q(`SELECT COUNT(*) n FROM ${relTable(e, rf)} WHERE status != 'confirmed'`).get().n;
+    const tools = [['/manage/harta/', 'Harta legăturilor', 'harta', 'map'],
+      ['/manage/surse/legaturi/', 'Legături de verificat', 'legaturi', 'check', unsure],
+      ['/manage/surse/', 'Surse', 'surse', 'source'], ['/manage/propagare/', 'Propagare', 'propagare', 'sync', st.failed, 'err'],
+      ['/manage/istoric/', 'Istoric', 'istoric', 'clock']];
+    const initials = String(user.name ?? '?').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
     return `<!doctype html><html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)} · Brain NIXODOR</title><link rel="stylesheet" href="/manage/assets/manage.css"><link rel="icon" href="/assets/favicon.png"></head>
-<body data-user="${esc(user.name)}"><header class="top"><a class="brand" href="/manage/">Brain <b>NIXODOR</b></a>
-<form class="search" action="/manage/cautare/"><input name="q" placeholder="Caută în Brain…" aria-label="Caută"></form>
-<span class="who">${esc(user.name)} · ${esc(user.role)}${user.local ? '' : ' · <a href="/manage/logout/">Ieșire</a>'}</span><a class="site" href="/" target="_blank">Site ↗</a></header>
-<div class="shell"><nav class="side">${nav.map(([h, l, k]) => `<a href="${h}"${k === active ? ' class="on"' : ''}>${l}</a>`).join('')}
-<div class="side-cats">${Object.entries(CATEGORIES).map(([c, l]) => `<p>${l}</p>${ENTITIES.filter(e => e.category === c && e.hub !== false).map(e => `<a href="/manage/entitati/${e.key}/"${active === e.key ? ' class="on"' : ''}><i style="background:${e.color}"></i>${esc(e.label)}</a>`).join('')}`).join('')}</div></nav>
+<body data-user="${esc(user.name)}"><header class="top"><a class="brand" href="/manage/"><span class="mark" aria-hidden="true"></span>NIXODOR <span>Brain</span></a>
+<form class="search" action="/manage/cautare/" role="search">${icon('search')}<input name="q" placeholder="Caută produse, pagini, articole…" aria-label="Caută în Brain"></form>
+<a class="site" href="/" target="_blank" rel="noopener">Vezi site-ul ${icon('external')}</a>
+<span class="who" title="${esc(user.name)} · ${esc(user.role)}"><span class="avatar">${esc(initials)}</span>${user.local ? '' : `<a href="/manage/logout/">Ieșire</a>`}</span></header>
+<div class="shell"><nav class="side" aria-label="Meniu">
+<a href="/manage/" class="home${active === 'panou' ? ' on' : ''}">${icon('home')}Panou</a>
+${Object.entries(CATEGORIES).map(([c, l]) => { const types = ENTITIES.filter(e => e.category === c && e.hub !== false); return types.length ? `<p>${l}</p>${types.map(e => `<a href="${typeHref(e)}"${active === e.key ? ' class="on"' : ''}><i style="background:${e.color}"></i><span>${esc(e.label)}</span>${e.singleton ? '' : `<small>${store.count(e.key)}</small>`}</a>`).join('')}` : ''; }).join('')}
+<p>Instrumente</p>${tools.map(([h, l, k, ic, n, cls]) => `<a href="${h}"${k === active ? ' class="on"' : ''}>${icon(ic)}<span>${l}</span>${n ? `<b class="pill ${cls ?? ''}">${n}</b>` : ''}</a>`).join('')}
+</nav>
 <main class="main"><div id="live-banner" hidden></div>${body}</main></div>
 <script src="/manage/assets/manage.js" defer></script></body></html>`;
   }
 
   // --- Panou ----------------------------------------------------------------------------
+  // starea site-ului într-o propoziție: detaliile tehnice stau în Propagare
+  function siteState(st) {
+    if (st.failed) return `<a class="state err" href="/manage/propagare/"><i></i>${st.failed} ${st.failed === 1 ? 'pagină nu s-a putut actualiza' : 'actualizări au eșuat'}</a>`;
+    if (st.pending || st.stale) return `<a class="state warn" href="/manage/propagare/"><i></i>Site-ul se actualizează…</a>`;
+    return `<a class="state ok" href="/manage/propagare/" title="Ultima actualizare: ${esc(fmt(st.last?.processed_at))}"><i></i>Site-ul e la zi · ${st.pages} pagini</a>`;
+  }
+
   function dashboard(user) {
     const st = sync.status(), items = todo(store);
-    const failed = q(`SELECT * FROM change_events WHERE status = 'failed' ORDER BY id DESC LIMIT 20`).all();
-    const recent = q(`SELECT * FROM change_events ORDER BY id DESC LIMIT 12`).all();
+    const recent = q(`SELECT * FROM change_events ORDER BY id DESC LIMIT 8`).all();
+    // ciornele care așteaptă au secțiunea lor; restul observațiilor se grupează pe înregistrare (un card, nu un rând pe problemă)
     const approvals = items.filter(t => t.kind === 'aprobare');
-    const counts = ['game', 'produse', 'articole', 'recenzii', 'pagini', 'media'].map(k => `<a class="stat" href="/manage/entitati/${k}/"><b>${store.count(k)}</b><span>${esc(BY_KEY[k].label)}</span></a>`).join('');
-    const todoHtml = items.length ? `<ul class="todo">${items.map(t => `<li class="i-${t.impact}"><span class="impact">${t.impact}</span>
-      ${t.key && t.id ? `<a href="${eurl(t.key, t.id)}${t.field ? `?camp=${t.field}` : ''}">${esc(t.title ?? `${t.key}:${t.id}`)}</a> — ` : t.kind === 'legături' ? '<a href="/manage/surse/legaturi/">Legături de verificat</a> — ' : t.kind === 'propagare' ? '<a href="/manage/propagare/">Propagare</a> — ' : ''}${esc(t.text)}</li>`).join('')}</ul>` : '<p class="ok">Nimic de făcut.</p>';
-    return layout(user, {title: 'Panou', active: 'panou'}, `<h1>Panou</h1><div class="stats">${counts}</div>
-      <div class="cols"><section class="box"><h2>De făcut <small>${items.length}</small></h2>${todoHtml}</section>
-      <div><section class="box"><h2>Propagare</h2><dl class="kv"><dt>În așteptare</dt><dd>${st.pending}</dd><dt>Eșuate</dt><dd>${st.failed}</dd>
-        <dt>Pagini în index</dt><dd>${st.pages}</dd><dt>Pagini de refăcut</dt><dd>${st.stale}</dd><dt>Dependențe</dt><dd>${st.deps}</dd>
-        <dt>Ultima propagare</dt><dd>${st.last ? `${fmt(st.last.processed_at)} · ${st.last.affected ?? 0} pagini` : '—'}</dd><dt>Ultima scanare</dt><dd>${fmt(st.lastScan)}</dd></dl>
-        ${failed.map(f => `<p class="err-row">Eveniment ${f.id} (${esc(f.action)} ${esc(f.label ?? '')}): ${esc(f.last_error)} <button data-post="/api/manage/sync/retry/${f.id}">Reia</button></p>`).join('')}</section>
-      <section class="box"><h2>Aprobări <small>${approvals.length}</small></h2>${approvals.length ? `<ul>${approvals.map(t => `<li><a href="${eurl(t.key, t.id)}">${esc(t.title)}</a> <span class="muted">${esc(BY_KEY[t.key].one)}</span></li>`).join('')}</ul>` : '<p class="muted">Nicio ciornă nu așteaptă.</p>'}</section>
-      <section class="box"><h2>Ultimele modificări</h2><table class="t"><tbody>${recent.map(ev => `<tr><td>${fmt(ev.at)}</td><td>${esc(ev.user_name)}</td><td>${esc(ev.action)}</td>
-        <td>${ev.entity && ev.entity_id ? `<a href="${eurl(ev.entity, ev.entity_id)}">${esc(ev.label ?? '')}</a>` : esc(ev.label ?? ev.entity ?? '')}</td>
-        <td><a href="/manage/propagare/${ev.id}/">${ev.affected ?? '…'} pagini</a></td></tr>`).join('')}</tbody></table></section></div></div>`);
+    const general = items.filter(t => t.kind !== 'aprobare' && !(t.key && t.id));
+    const byRec = new Map();
+    for (const t of items.filter(t => t.kind !== 'aprobare' && t.key && t.id)) {
+      const k = `${t.key}:${t.id}`;
+      if (!byRec.has(k)) byRec.set(k, {key: t.key, id: t.id, title: t.title, impact: t.impact, list: []});
+      byRec.get(k).list.push(t);
+    }
+    const generalLink = t => t.kind === 'legături' ? '/manage/surse/legaturi/' : t.kind === 'propagare' ? '/manage/propagare/' : null;
+    const todoHtml = general.map(t => `<a class="task i-${t.impact}" href="${generalLink(t) ?? '#'}"><span class="dot"></span><span><b>${esc(t.text)}</b></span>${icon('arrow')}</a>`).join('')
+      + [...byRec.values()].map(r => `<div class="task-group i-${r.impact}"><a class="task-head" href="${eurl(r.key, r.id)}"><span class="dot"></span><b>${esc(r.title ?? `${r.key}:${r.id}`)}</b><small>${esc(BY_KEY[r.key].one)}</small></a>
+        <ul>${r.list.map(t => `<li class="i-${t.impact}"><a href="${eurl(r.key, r.id)}${t.field ? `?camp=${t.field}` : ''}">${esc(t.text)}</a></li>`).join('')}</ul></div>`).join('');
+    const count = general.length + byRec.size;
+    return layout(user, {title: 'Panou', active: 'panou'}, `<div class="page-head"><div><h1>Panou</h1><p class="lead">Ce e de făcut în Brain și ce s-a schimbat pe site.</p></div>${siteState(st)}</div>
+      ${approvals.length ? `<section class="card accent"><h2>Așteaptă publicarea <small>${approvals.length}</small></h2><ul class="plain">${approvals.map(t => `<li><a href="${eurl(t.key, t.id)}">${esc(t.title)}</a> <span class="muted">${esc(BY_KEY[t.key].one)} · ${esc(t.text)}</span></li>`).join('')}</ul></section>` : ''}
+      <div class="cols"><section class="card"><h2>De făcut <small>${count}</small></h2>${count ? `<div class="tasks">${todoHtml}</div>` : '<p class="empty">Totul e în ordine. Nimic de făcut.</p>'}</section>
+      <section class="card"><h2>Ultimele modificări</h2><ol class="feed">${recent.map(ev => `<li><span class="when" title="${esc(fmt(ev.at))}">${esc(ago(ev.at))}</span>
+        <span><b>${esc(ev.user_name)}</b> ${esc(action(ev.action))} ${ev.entity && ev.entity_id && BY_KEY[ev.entity] ? `<a href="${eurl(ev.entity, ev.entity_id)}">${esc(ev.label ?? '')}</a>` : esc(ev.label ?? '')}</span></li>`).join('')}</ol>
+        <p class="more-link"><a href="/manage/istoric/">Tot istoricul ${icon('arrow')}</a></p></section></div>`);
   }
 
   // --- Entități ---------------------------------------------------------------------------
@@ -68,64 +123,78 @@ export function createViews(app) {
   function entityList(user, key, url) {
     const e = entity(key), search = url.searchParams.get('q') ?? '', status = url.searchParams.get('status') ?? '';
     const rows = store.list(key, {search: search || undefined, status: status || undefined, order: e.fields.some(f => f.key === 'position') ? 'position, id' : 'id DESC'});
-    const cols = e.fields.filter(f => f.list).slice(0, 4);
+    // o coloană care repetă doar ce scrie deja în nume (ex. cantitatea din „Felina, 10 kg”) nu se mai afișează
+    const inTitle = f => f.type !== 'ref' && f.type !== 'image' && rows.every(r => r[f.key] == null || r[f.key] === '' || titleOf(e, r).includes(String(r[f.key])));
+    const cols = e.fields.filter(f => f.list && !(rows.length && inTitle(f))).slice(0, 4);
     const cell = (f, r) => {
       const v = r[f.key];
       if (v == null || v === '') return '<span class="muted">—</span>';
       if (f.type === 'ref' || f.type === 'image') { const t = BY_KEY[targetOf(f)]; return `<a href="${eurl(t.key, v)}">${esc(titleOf(t, store.read(t.key, v)))}</a>`; }
       return esc(String(v).slice(0, 80));
     };
-    return layout(user, {title: e.label, active: key}, `<div class="head"><h1>${esc(e.label)} <small>${rows.length}</small></h1>
-      ${e.singleton && rows.length ? '' : `<a class="btn" href="/manage/entitati/${key}/nou/">${e.one} nou${e.one.endsWith('ă') ? 'ă' : ''}</a>`}</div>
-      <form class="filters"><input name="q" value="${esc(search)}" placeholder="Caută">${e.noStatus ? '' : `<select name="status"><option value="">Toate stările</option>${Object.entries(STATUS).map(([k, l]) => `<option value="${k}"${status === k ? ' selected' : ''}>${l}</option>`).join('')}</select>`}<button>Filtrează</button></form>
-      <table class="t list"><thead><tr><th>${e.thumb ? '' : '#'}</th><th>Nume</th>${cols.filter(f => f.key !== e.title).map(f => `<th>${esc(f.label)}</th>`).join('')}${e.noStatus ? '' : '<th>Stare</th>'}<th>Apare în</th></tr></thead><tbody>
+    const cat = CATEGORIES[e.category];
+    return layout(user, {title: e.label, active: key}, `<div class="page-head"><div>${cat === e.label ? '' : `<p class="crumbs">${esc(cat)}</p>`}<h1>${esc(e.label)} <small>${rows.length}</small></h1></div>
+      ${e.singleton && rows.length ? '' : `<a class="btn" href="/manage/entitati/${key}/nou/">${icon('plus')}${e.one} nou${e.one.endsWith('ă') ? 'ă' : ''}</a>`}</div>
+      <form class="filters" role="search"><label class="field-search">${icon('search')}<input name="q" value="${esc(search)}" placeholder="Caută în ${esc(e.label.toLowerCase())}" aria-label="Caută"></label>${e.noStatus ? '' : `<select name="status" aria-label="Starea" data-autosubmit><option value="">Toate stările</option>${Object.entries(STATUS).map(([k, l]) => `<option value="${k}"${status === k ? ' selected' : ''}>${l}</option>`).join('')}</select>`}<button class="btn ghost">Caută</button></form>
+      ${rows.length ? '' : `<p class="empty">${search || status ? 'Nimic nu corespunde căutării.' : 'Nicio înregistrare încă.'}</p>`}
+      <div class="table-card"${rows.length ? '' : ' hidden'}><table class="t list"><thead><tr>${e.thumb ? '<th class="th-thumb"></th>' : ''}<th>Nume</th>${cols.filter(f => f.key !== e.title).map(f => `<th>${esc(f.label)}</th>`).join('')}${e.noStatus ? '' : '<th>Stare</th>'}<th class="num">Pagini</th></tr></thead><tbody>
       ${rows.map(r => {
         const thumbId = e.thumb === 'id' ? r.id : e.thumb ? r[e.thumb] : null, m = thumbId && store.read('media', thumbId);
-        return `<tr><td>${m && /^image/.test(m.mime) ? `<img class="thumb" src="/media/${m.id}/${encodeURIComponent(m.name)}" alt="">` : r.id}</td><td><a href="${eurl(key, r.id)}">${esc(titleOf(e, r))}</a>${r.draft ? ' <span class="badge s-draft">modificări în ciornă</span>' : ''}</td>
-        ${cols.filter(f => f.key !== e.title).map(f => `<td>${cell(f, r)}</td>`).join('')}${e.noStatus ? '' : `<td>${badge(r.status)}</td>`}<td>${appearsIn(key, r.id) || '<span class="muted">0</span>'}</td></tr>`;
-      }).join('')}</tbody></table>`);
+        return `<tr data-href="${eurl(key, r.id)}">${e.thumb ? `<td class="td-thumb">${m && /^image/.test(m.mime) ? `<img class="thumb" src="/media/${m.id}/${encodeURIComponent(m.name)}" alt="" loading="lazy">` : '<span class="thumb none"></span>'}</td>` : ''}<td class="td-name"><a href="${eurl(key, r.id)}">${esc(titleOf(e, r))}</a>${r.draft ? ' <span class="badge s-draft">ciornă nepublicată</span>' : ''}</td>
+        ${cols.filter(f => f.key !== e.title).map(f => `<td>${cell(f, r)}</td>`).join('')}${e.noStatus ? '' : `<td>${badge(r.status)}</td>`}<td class="num">${appearsIn(key, r.id) || '<span class="muted">—</span>'}</td></tr>`;
+      }).join('')}</tbody></table></div>`);
   }
 
   // --- formularul ------------------------------------------------------------------------
   const linksToText = (items, depth = 0) => (items ?? []).map(it => `${'- '.repeat(depth)}${it.label ?? ''} | ${it.to ?? ''}${it.button ? ' | buton' : ''}\n${linksToText(it.children, depth + 1)}`).join('');
 
+  const WIDE = new Set(['textarea', 'richtext', 'list', 'links', 'table', 'texts', 'multiselect']);
+  // câmpurile de imagine arată doar fișierele potrivite: imagini sau, pentru etichete, PDF-uri
+  const mediaFits = (f, m) => /pdf/i.test(f.key) ? m.mime === 'application/pdf' : /^image\//.test(m.mime);
+
   function field(f, value, rec) {
     const id = `f_${f.key}`, ro = f.readonly ? ' readonly' : '';
-    const label = `<label for="${id}">${esc(f.label)}${f.required ? ' <b class="req">*</b>' : ''}</label>`;
-    let input;
+    const label = `<label for="${id}">${esc(f.label)}${f.required ? ' <b class="req" title="obligatoriu">*</b>' : ''}</label>`;
+    let input, after = '';
     switch (f.type) {
       case 'textarea': input = `<textarea id="${id}" name="${f.key}" rows="4"${ro}>${esc(value ?? '')}</textarea>`; break;
-      case 'richtext': input = `<textarea id="${id}" name="${f.key}" rows="10" class="rich"${ro}>${esc(value ?? '')}</textarea><small class="hint">HTML curățat la salvare: titluri, paragrafe, liste, citate, tabele, linkuri (<code>data-ref="tip:id"</code>), imagini (<code>data-media="id"</code>). Jetoane: <code>{telefon}</code> <code>{email}</code> <code>{firma}</code> <code>{an}</code>.</small>`; break;
-      case 'boolean': input = `<input type="checkbox" id="${id}" name="${f.key}" data-type="boolean"${value ? ' checked' : ''}${f.readonly ? ' disabled' : ''}>`; break;
+      case 'richtext': input = `<textarea id="${id}" name="${f.key}" rows="10" class="rich"${ro}>${esc(value ?? '')}</textarea>`; break;
+      case 'boolean': input = `<label class="switch"><input type="checkbox" id="${id}" name="${f.key}" data-type="boolean"${value ? ' checked' : ''}${f.readonly ? ' disabled' : ''}><span></span></label>`; break;
       case 'select': input = `<select id="${id}" name="${f.key}"${ro}><option value="">—</option>${f.options.map(o => `<option${o === value ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`; break;
       case 'ref': case 'image': {
         const t = BY_KEY[targetOf(f)];
-        const opts = store.list(t.key).map(o => `<option value="${o.id}"${o.id === value ? ' selected' : ''}>${esc(titleOf(t, o))}${o.status && o.status !== 'published' ? ` (${STATUS[o.status]})` : ''}</option>`).join('');
-        input = `<select id="${id}" name="${f.key}" data-type="int"${ro}><option value="">—</option>${opts}</select>${value ? ` <a href="${eurl(t.key, value)}">deschide</a>` : ''}`;
-        if (f.type === 'image' && value) { const m = store.read('media', value); if (m && /^image/.test(m.mime)) input += `<img class="preview" src="/media/${m.id}/${encodeURIComponent(m.name)}" alt="">`; }
+        const list = store.list(t.key).filter(o => t.key !== 'media' || o.id === value || mediaFits(f, o));
+        const opts = list.map(o => `<option value="${o.id}"${o.id === value ? ' selected' : ''}>${esc(titleOf(t, o))}${o.status && o.status !== 'published' ? ` (${STATUS[o.status]})` : ''}</option>`).join('');
+        input = `<div class="with-link"><select id="${id}" name="${f.key}" data-type="int"${ro}><option value="">—</option>${opts}</select>${value ? `<a class="open" href="${eurl(t.key, value)}" title="Deschide ${esc(t.one.toLowerCase())}">${icon('external')}</a>` : ''}</div>`;
+        if (f.type === 'image' && value) { const m = store.read('media', value); if (m && /^image/.test(m.mime)) after = `<img class="preview" src="/media/${m.id}/${encodeURIComponent(m.name)}" alt="">`; }
         break;
       }
-      case 'list': input = `<textarea id="${id}" name="${f.key}" data-type="list" rows="3"${ro}>${esc((value ?? []).join('\n'))}</textarea><small class="hint">Câte unul pe rând.</small>`; break;
-      case 'links': input = `<textarea id="${id}" name="${f.key}" data-type="links" rows="6" class="mono"${ro}>${esc(linksToText(value))}</textarea><small class="hint">Câte un rând: <code>Etichetă | destinație</code>; destinația poate fi <code>ref:pagini:3</code>, <code>/blog/</code> sau o adresă externă. Copiii încep cu <code>- </code>; butonul se marchează cu <code>| buton</code>.</small>`; break;
+      case 'list': input = `<textarea id="${id}" name="${f.key}" data-type="list" rows="3" placeholder="Câte unul pe rând"${ro}>${esc((value ?? []).join('\n'))}</textarea>`; break;
+      case 'links': input = `<textarea id="${id}" name="${f.key}" data-type="links" rows="6" class="mono"${ro}>${esc(linksToText(value))}</textarea>`; after = '<small class="hint">Câte un rând: <code>Etichetă | destinație</code>. Destinația poate fi <code>ref:pagini:3</code>, <code>/blog/</code> sau o adresă externă. Copiii încep cu <code>- </code>, iar butonul se marchează cu <code>| buton</code>.</small>'; break;
       case 'table': case 'texts': case 'multiselect': input = `<textarea id="${id}" name="${f.key}" data-type="json" rows="4" class="mono"${ro}>${esc(value ? JSON.stringify(value, null, 1) : '')}</textarea>`; break;
       case 'int': case 'number': case 'money': input = `<input id="${id}" name="${f.key}" type="number" step="${f.type === 'int' ? 1 : 'any'}" value="${esc(value ?? '')}" data-type="number"${ro}>`; break;
       case 'date': input = `<input id="${id}" name="${f.key}" type="date" value="${esc(value ?? '')}"${ro}>`; break;
-      default: input = `<input id="${id}" name="${f.key}" type="${f.type === 'email' ? 'email' : f.type === 'url' ? 'text' : 'text'}" value="${esc(value ?? '')}"${f.max ? ` maxlength="${f.max}"` : ''}${ro}>`;
+      default: input = `<input id="${id}" name="${f.key}" type="${f.type === 'email' ? 'email' : 'text'}" value="${esc(value ?? '')}"${f.max ? ` maxlength="${f.max}"` : ''}${ro}>`;
     }
     const kinds = f.kinds ? ` data-kinds="${f.kinds.join(' ')}"` : '';
-    return `<div class="field" data-field="${f.key}"${kinds}>${label}${input}</div>`;
+    return `<div class="field${WIDE.has(f.type) ? ' wide' : ''}${f.type === 'boolean' ? ' inline' : ''}" data-field="${f.key}"${kinds}>${label}${input}${after}</div>`;
   }
+
+  // ajutorul pentru textele formatate apare o dată, deasupra formularului, nu sub fiecare câmp
+  const richHelp = `<details class="help"><summary>${icon('info')}Cum formatez textele</summary><p>Textul se curăță la salvare. Rămân titlurile, paragrafele, listele, citatele, tabelele, linkurile (<code>data-ref="tip:id"</code>) și imaginile (<code>data-media="id"</code>).</p><p>Se completează singure din Date firmă: <code>{telefon}</code> <code>{email}</code> <code>{firma}</code> <code>{an}</code>.</p></details>`;
 
   function form(e, rec, {draftView} = {}) {
     const vals = draftView ?? rec ?? {};
-    return `<form id="entity-form" data-key="${e.key}" data-id="${rec?.id ?? ''}" data-version="${rec?.version ?? ''}">
-      ${e.fields.filter(f => f.type !== 'refs' && !f.intern).map(f => field(f, vals[f.key], rec)).join('')}</form>`;
+    const fields = e.fields.filter(f => f.type !== 'refs' && !f.intern);
+    return `${fields.some(f => f.type === 'richtext') ? richHelp : ''}<form id="entity-form" class="form-grid" data-key="${e.key}" data-id="${rec?.id ?? ''}" data-version="${rec?.version ?? ''}">
+      ${fields.map(f => field(f, vals[f.key], rec)).join('')}</form>`;
   }
 
   function newEntity(user, key) {
     const e = entity(key);
-    return layout(user, {title: `${e.one} nou`, active: key}, `<h1>${esc(e.one)} — înregistrare nouă</h1><div class="box">${form(e, null)}
-      <div class="actions"><button class="btn" data-action="create">Salvează ca ciornă</button>${e.noStatus ? '' : `<button class="btn ghost" data-action="create-publish">Salvează și publică</button>`}</div><div id="result"></div></div>`);
+    return layout(user, {title: `${e.one} nou`, active: key}, `<div class="page-head"><div><p class="crumbs"><a href="/manage/entitati/${key}/">${esc(e.label)}</a></p><h1>${esc(e.one)} nou${e.one.endsWith('ă') ? 'ă' : ''}</h1></div></div>
+      <div class="card">${form(e, null)}</div><div id="result"></div>
+      <div class="savebar"><span class="muted">${e.noStatus ? '' : 'O ciornă nu apare pe site până o publici.'}</span>${e.noStatus ? '<button class="btn" data-action="create">Salvează</button>' : `<button class="btn ghost" data-action="create">Salvează ca ciornă</button><button class="btn" data-action="create-publish">Salvează și publică</button>`}</div>`);
   }
 
   // --- pagina unei entități -------------------------------------------------------------------
@@ -142,25 +211,30 @@ export function createViews(app) {
     else if (tab === 'unde-apare') body = undeApare(e, rec);
     else if (tab === 'surse') body = surse(e, rec);
     else if (tab === 'istoric') body = istoric(e, rec);
-    const head = `<div class="head"><div><p class="crumbs"><a href="/manage/entitati/${key}/">${esc(e.label)}</a></p>
-      <h1>${esc(titleOf(e, draft))} ${e.noStatus ? '' : badge(rec.status)}${rec.draft ? ' <span class="badge s-draft">modificări în ciornă</span>' : ''}</h1>
-      <p class="muted">${path ? `<a href="${esc(path)}" target="_blank">${esc(path)}</a> · ` : ''}Apare în <b>${n}</b> pagini · actualizat ${fmt(rec.updated_at)} de ${esc(rec.updated_by ?? '—')}
-      ${e.approval ? ' · <span class="badge s-approval">publicarea cere aprobare</span>' : ''}</p></div>
-      <div class="actions">${path ? `<a class="btn ghost" href="/manage/previzualizare${esc(path)}" target="_blank">Previzualizează</a>` : ''}
-      ${e.noStatus ? '' : rec.status !== 'published' || rec.draft ? `<button class="btn" data-action="publish">Publică</button>` : ''}
-      ${!e.noStatus && rec.status === 'published' ? `<button class="btn ghost" data-action="status" data-status="draft">Retrage</button>` : ''}
-      ${!e.noStatus && rec.status !== 'archived' ? `<button class="btn ghost" data-action="status" data-status="archived">Arhivează</button>` : ''}
-      <button class="btn danger" data-action="delete">Șterge</button></div></div>
-      <nav class="tabs">${tabs.map(([t, l]) => `<a href="${eurl(key, id, t === 'detalii' ? '' : t)}"${t === tab ? ' class="on"' : ''}>${l}</a>`).join('')}</nav>`;
+    // „Publică” stă în antet doar pe celelalte file: pe Detalii, bara de salvare are deja „Salvează și publică”
+    const canPublish = !e.noStatus && (rec.status !== 'published' || rec.draft);
+    const menu = [!e.noStatus && rec.status === 'published' ? `<button data-action="status" data-status="draft">Retrage de pe site</button>` : '',
+      !e.noStatus && rec.status !== 'archived' ? `<button data-action="status" data-status="archived">Arhivează</button>` : '',
+      `<button class="danger" data-action="delete">Șterge</button>`].join('');
+    const head = `<div class="page-head"><div><p class="crumbs">${CATEGORIES[e.category] === e.label ? '' : `${esc(CATEGORIES[e.category])} › `}<a href="${typeHref(e) === eurl(key, id) ? '#' : `/manage/entitati/${key}/`}">${esc(e.label)}</a></p>
+      <h1>${esc(titleOf(e, draft))} ${e.noStatus ? '' : badge(rec.status)}${rec.draft ? ' <span class="badge s-draft">ciornă nepublicată</span>' : ''}</h1>
+      <p class="meta">${path ? `<a href="${esc(path)}" target="_blank" rel="noopener">${esc(path)} ${icon('external')}</a><span>·</span>` : ''}<span title="${esc(fmt(rec.updated_at))}">Actualizat ${esc(ago(rec.updated_at))} de ${esc(rec.updated_by ?? '—')}</span></p></div>
+      <div class="actions">${path ? `<a class="btn ghost" href="/manage/previzualizare${esc(path)}" target="_blank">${icon('eye')}Previzualizează</a>` : ''}
+      ${canPublish && tab !== 'detalii' ? `<button class="btn" data-action="publish">Publică</button>` : ''}
+      <details class="menu"><summary class="btn ghost icon-only" aria-label="Alte acțiuni">${icon('more')}</summary><div>${menu}</div></details></div></div>
+      <nav class="tabs">${tabs.map(([t, l]) => `<a href="${eurl(key, id, t === 'detalii' ? '' : t)}"${t === tab ? ' class="on" aria-current="page"' : ''}>${l}</a>`).join('')}</nav>`;
     return layout(user, {title: titleOf(e, rec), active: key}, `<div data-entity="${key}:${id}">${head}${body}<div id="result"></div></div>`);
   }
 
   function detalii(e, rec, draft) {
     const obs = todo(store).filter(t => t.key === e.key && t.id === rec.id);
-    const note = !e.noStatus && rec.status === 'published' ? `<p class="note">Înregistrarea e publicată: „Salvează” scrie o ciornă, iar site-ul rămâne neschimbat până la „Publică”.${e.approval ? ' Publicarea cere dreptul de aprobare.' : ''}</p>` : '';
-    return `${obs.length ? `<ul class="todo">${obs.map(t => `<li class="i-${t.impact}"><span class="impact">${t.impact}</span>${esc(t.text)}</li>`).join('')}</ul>` : ''}${note}
-      <div class="box">${form(e, rec, {draftView: draft})}<div class="actions"><button class="btn" data-action="save">Salvează</button>
-      ${!e.noStatus && rec.status === 'published' ? '<button class="btn ghost" data-action="save-publish">Salvează și publică</button>' : ''}</div></div>`;
+    const hint = e.noStatus ? 'Modificările apar pe site imediat după salvare.'
+      : rec.status === 'published' ? `Site-ul se schimbă doar la „Salvează și publică”.${e.approval ? ' Publicarea cere aprobare.' : ''}`
+      : 'Înregistrarea nu e pe site până o publici.';
+    return `${obs.length ? `<div class="callout"><b>De rezolvat aici</b><ul>${obs.map(t => `<li class="i-${t.impact}"><a href="?camp=${esc(t.field ?? '')}">${esc(t.text)}</a></li>`).join('')}</ul></div>` : ''}
+      <div class="card">${form(e, rec, {draftView: draft})}</div>
+      <div class="savebar"><span class="muted">${esc(hint)}</span>${e.noStatus ? '<button class="btn" data-action="save">Salvează</button>'
+        : `<button class="btn ghost" data-action="save">Salvează${rec.status === 'published' ? ' ciorna' : ''}</button><button class="btn" data-action="save-publish">Salvează și publică</button>`}</div>`;
   }
 
   function relatii(e, rec) {
@@ -316,16 +390,21 @@ export function createViews(app) {
         <table class="t"><thead><tr><th>Pagina</th><th>Acțiune</th><th>De ce</th></tr></thead><tbody>${log.map(l => `<tr><td><a href="${esc(l.path)}" target="_blank">${esc(l.path)}</a></td><td>${esc(l.action)}</td><td>${esc(l.detail ?? '')}</td></tr>`).join('')}</tbody></table>`);
     }
     const rows = q('SELECT * FROM change_events ORDER BY id DESC LIMIT 200').all();
-    return layout(user, {title: 'Propagare', active: 'propagare'}, `<div class="head"><h1>Propagare</h1><button class="btn ghost" data-post="/api/manage/sync/scan">Scanează tot site-ul</button></div>
+    const st = sync.status();
+    const failed = q(`SELECT * FROM change_events WHERE status = 'failed' ORDER BY id DESC LIMIT 20`).all();
+    return layout(user, {title: 'Propagare', active: 'propagare'}, `<div class="page-head"><div><h1>Propagare</h1><p class="lead">Cum ajung modificările din Brain pe paginile site-ului.</p></div><div class="actions">${siteState(st)}<button class="btn ghost" data-post="/api/manage/sync/scan">Verifică tot site-ul</button></div></div>
+      <div class="stats">${[['În așteptare', st.pending], ['Eșuate', st.failed], ['Pagini pe site', st.pages], ['De refăcut', st.stale], ['Dependențe urmărite', st.deps]].map(([l, v]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('')}
+        <div class="stat"><b>${esc(ago(st.lastScan))}</b><span>Ultima verificare completă</span></div></div>
+      ${failed.map(f => `<p class="err-row">Eveniment ${f.id} (${esc(action(f.action))} ${esc(f.label ?? '')}): ${esc(f.last_error)} <button data-post="/api/manage/sync/retry/${f.id}">Reia</button></p>`).join('')}
       <table class="t"><thead><tr><th>#</th><th>Când</th><th>Cine</th><th>Ce</th><th>Înregistrarea</th><th>Stare</th><th>Pagini</th></tr></thead><tbody>
-      ${rows.map(ev => `<tr><td><a href="/manage/propagare/${ev.id}/">${ev.id}</a></td><td>${fmt(ev.at)}</td><td>${esc(ev.user_name)}</td><td>${esc(ev.action)}</td><td>${ev.entity && ev.entity_id ? `<a href="${eurl(ev.entity, ev.entity_id)}">${esc(ev.label ?? '')}</a>` : esc(ev.label ?? '')}</td>
+      ${rows.map(ev => `<tr><td><a href="/manage/propagare/${ev.id}/">${ev.id}</a></td><td>${fmt(ev.at)}</td><td>${esc(ev.user_name)}</td><td>${esc(action(ev.action))}</td><td>${ev.entity && ev.entity_id ? `<a href="${eurl(ev.entity, ev.entity_id)}">${esc(ev.label ?? '')}</a>` : esc(ev.label ?? '')}</td>
       <td>${badge(ev.status, {pending: 'în așteptare', done: 'propagat', failed: 'eșuat'})}</td><td>${ev.affected ?? ''}</td></tr>`).join('')}</tbody></table>`);
   }
 
   function history(user) {
     const rows = q('SELECT * FROM audit_log ORDER BY id DESC LIMIT 200').all();
     return layout(user, {title: 'Istoric', active: 'istoric'}, `<h1>Istoric</h1><table class="t"><thead><tr><th>Când</th><th>Cine</th><th>Ce</th><th>Înregistrarea</th><th>Câmpuri</th></tr></thead><tbody>
-      ${rows.map(a => `<tr><td>${fmt(a.at)}</td><td>${esc(a.user_name)}</td><td>${esc(a.action)}</td><td>${a.entity && a.entity_id && a.action !== 'delete' && BY_KEY[a.entity] ? `<a href="${eurl(a.entity, a.entity_id, 'istoric')}">${esc(a.label ?? `${a.entity}:${a.entity_id}`)}</a>` : esc(a.label ?? '')}</td>
+      ${rows.map(a => `<tr><td>${fmt(a.at)}</td><td>${esc(a.user_name)}</td><td>${esc(action(a.action))}</td><td>${a.entity && a.entity_id && a.action !== 'delete' && BY_KEY[a.entity] ? `<a href="${eurl(a.entity, a.entity_id, 'istoric')}">${esc(a.label ?? `${a.entity}:${a.entity_id}`)}</a>` : esc(a.label ?? '')}</td>
       <td><small>${a.changes ? Object.keys(JSON.parse(a.changes)).map(esc).join(', ') : ''}</small></td></tr>`).join('')}</tbody></table>`);
   }
 
@@ -337,7 +416,7 @@ export function createViews(app) {
   }
 
   const login = error => `<!doctype html><html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Intrare · Brain NIXODOR</title><link rel="stylesheet" href="/manage/assets/manage.css"></head>
-    <body class="login"><form method="post" action="/manage/login/" class="box"><h1>Brain <b>NIXODOR</b></h1>${error ? `<p class="err">${esc(error)}</p>` : ''}
+    <body class="login"><form method="post" action="/manage/login/" class="card"><h1><span class="mark" aria-hidden="true"></span>NIXODOR Brain</h1>${error ? `<p class="err">${esc(error)}</p>` : ''}
     <label>Email<input name="email" type="email" required autofocus></label><label>Parolă<input name="password" type="password" required></label><button class="btn">Intră</button></form></body></html>`;
 
   return {dashboard, entitiesHome, entityList, entityPage, newEntity, map, sources, inferred, propagation, history, search, login};

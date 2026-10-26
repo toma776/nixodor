@@ -126,6 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) { showError(e); }
   });
 
+  // tot rândul din liste e un link; filtrul de stare se aplică la alegere; meniul „⋯” se închide la un clic în afară
+  document.addEventListener('click', ev => {
+    const tr = ev.target.closest('tr[data-href]');
+    if (tr && !ev.target.closest('a, button, input')) location.href = tr.dataset.href;
+    $$('details.menu[open]').forEach(d => { if (!d.contains(ev.target)) d.open = false; });
+  });
+  $$('[data-autosubmit]').forEach(s => s.addEventListener('change', () => s.form.submit()));
+
   const note = sessionStorage.getItem('nx-live-note');
   if (note) { sessionStorage.removeItem('nx-live-note'); show(`<b>${esc(note)}</b>`); }
 
