@@ -83,3 +83,7 @@ De verificat cu clientul:
 - Etichetele spun „Producător: Instant SoftNet SRL sub licența Nourivit… Distribuitor: Instant SoftNet SRL, www.portalia.ro”: Portalia e chiar firma care face produsele.
 - Degresorul are un cod EAN cu alt prefix (7331898535958) decât restul gamei (5065000…) și nu menționează Nourivit: e posibil să fie făcut de alt producător.
 - Pozele de la Portalia au fundal alb; pe site se contopesc cu fundalul din CSS. Pentru calitate maximă, ar fi bune variantele transparente (PNG) de la client.
+
+## Descrieri proprii (ciorne, 26.10.2026)
+
+Descrierile celor 8 game, rescrise ca text NIXODOR (`scripts/design/2026-10-26-descrieri-proprii.mjs`), ca să nu mai fie identice cu cele de pe Portalia: aceleași fapte, organizate pe problemă, cum funcționează, unde îl folosești, ce câștigi. Compoziția, dozarea, aplicarea, păstrarea și siguranța rămân cele de pe etichetă (informații tehnice, scurte). Așteaptă aprobarea în panou („Așteaptă publicarea”).
