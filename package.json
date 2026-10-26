@@ -14,7 +14,7 @@
     "import": "node scripts/import.mjs",
     "scan": "node scripts/scan.mjs",
     "test": "node --test test/*.test.mjs",
-    "design": "node scripts/design/2026-10-26-homepage.mjs && node scripts/design/2026-10-26-benefit-icons.mjs && node scripts/design/2026-10-26-felina-variante.mjs && node scripts/design/2026-10-26-aer-curat-pets.mjs",
+    "design": "node scripts/design/2026-10-26-homepage.mjs && node scripts/design/2026-10-26-benefit-icons.mjs && node scripts/design/2026-10-26-felina-variante.mjs && node scripts/design/2026-10-26-aer-curat-pets.mjs && node scripts/design/2026-10-26-bioactivator-eticheta.mjs",
     "setup": "npm run import && npm run design"
   }
 }
