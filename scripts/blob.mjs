@@ -33,8 +33,14 @@ if (cmd === 'upload') {
   if (!remote) throw new Error('În Blob nu există încă brain.db.');
   const r = await get('brain.db', {access: 'private', useCache: false});
   mkdirSync(join(DATA, 'backup'), {recursive: true});
-  if (existsSync(DB)) copyFileSync(DB, join(DATA, 'backup', `${new Date().toISOString().replace(/[:.]/g, '-')}-brain.db`));
-  for (const f of ['-wal', '-shm']) rmSync(DB + f, {force: true});
+  if (existsSync(DB)) {
+    const db = new DatabaseSync(DB);
+    db.exec('PRAGMA wal_checkpoint(TRUNCATE)');              // copia de siguranță să conțină tot
+    db.close();
+    copyFileSync(DB, join(DATA, 'backup', `${new Date().toISOString().replace(/[:.]/g, '-')}-brain.db`));
+  }
+  try { for (const f of ['-wal', '-shm']) rmSync(DB + f, {force: true}); }
+  catch (e) { if (e.code === 'EPERM' || e.code === 'EBUSY') throw new Error('Baza locală e deschisă de serverul local: oprește-l (npm start) și rulează din nou.'); throw e; }
   writeFileSync(DB, Buffer.from(await new Response(r.stream).arrayBuffer()));
   writeFileSync(MARK, r.blob.etag);
   console.log('Adus: baza online e acum în data/brain.db (cea veche e în data/backup/).');

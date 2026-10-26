@@ -1,6 +1,6 @@
 # NIXODOR — site + Brain /manage
 
-Site-ul nixodor.ro, randat pe server dintr-un Brain (SQLite), construit după **standardul Brain /manage v1** (15.10.2026). Node 24, `node:sqlite`, fără dependențe.
+Site-ul nixodor.ro, randat pe server dintr-un Brain (SQLite), construit după **standardul Brain /manage v1** (15.10.2026). Node 24, `node:sqlite`; singura dependență e `@vercel/blob`, pentru deploy.
 
 ```bash
 npm run setup     # import din snapshot + modificările de design din scripts/design/ (o instalare nouă)
@@ -28,6 +28,22 @@ npm test          # testele obligatorii din §5 (23) + verificarea iconițelor, 
 | §3.9 media (SHA-1, înlocuire cu același ID, `?v=`) | `src/core/media.mjs` |
 | §3.11 panouri, SSE live · Anexa C API | `src/manage/*`, `src/server.mjs` |
 
-## Utilizatori
+## Online (Vercel)
 
-Pe `localhost`, `/manage` intră fără parolă, ca administrator (standard §1.9). Pentru acces din afară există tabelul `users` și autentificarea cu scrypt (`createAuth().addUser`); scriptul de creare a utilizatorilor nu e făcut încă.
+Site-ul și panoul rulează pe Vercel (proiectul `nixodor`, echipa dwf3): https://nixodor.vercel.app/. Deploy-ul pleacă singur la fiecare push pe `main`. Până la lansare, toate paginile au `x-robots-tag: noindex`.
+
+- Codul e același ca local: `api/index.mjs` primește toate cererile. Baza `brain.db` stă într-un **Blob privat** (`nixodor-brain`), ținută în `/tmp` de fiecare instanță și reîncărcată când i se schimbă ETag-ul. După o salvare din panou, baza se urcă înapoi condiționat: dacă între timp a salvat altcineva, editorul primește „Reîncarcă și salvează din nou”, nu se pierde nimic.
+- Imaginile de la import sunt statice, în `public/media`, refăcute cu `npm run build:public`. Cele urcate din panou stau în Blob.
+- Cheia Blob vine pe calculator cu `npx vercel env pull .env.local`. Fișierul nu intră în git.
+
+Când lucrezi local, sincronizezi baza cu cea online:
+
+```bash
+npm run blob:download          # aduce baza online (s-a editat în panoul online); oprește întâi npm start
+npm run blob:upload            # urcă baza locală; refuză dacă online s-a schimbat de la ultima sincronizare
+npm run blob:upload -- --force # urcă oricum, suprascriind ce s-a editat online
+```
+
+## Acces la panou
+
+Pe `localhost`, `/manage` intră fără parolă, ca administrator (standard §1.9). Online, deocamdată, intră **oricine are linkul secret** `https://nixodor.vercel.app/manage/?acces=<cheie>`. Linkul pune un cookie valabil un an. Cheia e variabila `NIXODOR_PANEL_KEY` din Vercel (Production): dacă o schimbi și refaci deploy-ul, linkul vechi nu mai merge. Conturile cu parolă rămân posibile (`npm run user -- add <email> "<Nume>" <rol>`), dar nu sunt folosite.
