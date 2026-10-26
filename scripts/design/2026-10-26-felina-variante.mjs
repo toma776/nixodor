@@ -1,10 +1,10 @@
-// Pagina Felina (26.10.2026): doar produsele care apăreau pe site-ul vechi (cutiile de 5 și 10 kg), cu descrierile lor de acolo.
+// Pagina Felina (26.10.2026): doar produsele care apăreau pe site-ul vechi (cutiile de 5 și 10 kg).
+// Variantele nu au carduri (diferă doar prin cantitate), deci nici textele cardurilor vechi.
 // Sacii din catalogul Portalia rămân în Brain ca ciorne (nu apar pe site, nu se șterg).
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {createApp, ROOT} from '../../src/app.mjs';
 import {PERMS} from '../../src/registry/entities.mjs';
-import {nowIso} from '../../src/core/db.mjs';
 
 const DESIGN = {name: 'Claude (design)', role: 'admin', perms: new Set(PERMS.admin)};
 const app = createApp({live: false});
@@ -17,21 +17,13 @@ const cards = [...html.matchAll(/class="col w50 felina">[\s\S]*?href="[^"]*-p(\d
   .map(([, pid, p]) => ({pid, text: p.replace(/<span[^>]*>lorem ipsum[\s\S]*?<\/span>/i, '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()}));
 if (cards.length !== 2) throw new Error(`am găsit ${cards.length} carduri, nu 2`);
 
-const source = db.prepare('SELECT id FROM sources WHERE url = ?').get('https://www.nixodor.ro/nixodor-felina.html').id;
-for (const {pid, text} of cards) {
-  const id = prod(`portalia:p${pid}`);
-  store.update(DESIGN, 'produse', id, {description: text}, {publish: true});
-  db.prepare(`INSERT INTO provenance (entity, entity_id, field, source_id, excerpt, method, certainty, created_at) VALUES ('produse', ?, 'description', ?, ?, 'cardul produsului de pe pagina veche', 'confirmed', ?)
-    ON CONFLICT(entity, entity_id, field, source_id) DO NOTHING`).run(id, source, text.slice(0, 200), nowIso());
-}
-
 // Sacii nu erau pe site-ul vechi: îi retragem (rămân ciorne).
 for (const pid of ['p663', 'p664', 'p675']) store.setStatus(DESIGN, 'produse', prod(`portalia:${pid}`), 'draft');
 
-// Paragraful cutiei de 10 kg intrase la import și în descrierea gamei; acum stă pe variantă (o singură sursă).
+// Textele cardurilor repetă primul paragraf al descrierii („100% natural”, „nu provoacă alergii”), deci nu le mai afișăm.
+// Paragraful cutiei de 10 kg intrase la import și în descrierea gamei: îl scoatem de acolo.
 const fel = db.prepare(`SELECT id, description FROM product_lines WHERE legacy_ref = 'gama:felina'`).get();
-const moved = cards.find(c => c.pid === '270').text;
-const desc = fel.description.replace(`<p>${moved}</p>`, '');
+const desc = cards.reduce((d, c) => d.replace(`<p>${c.text}</p>`, ''), fel.description ?? '');
 if (desc !== fel.description) store.update(DESIGN, 'game', fel.id, {description: desc}, {live: true});
 
 const done = app.sync.process();

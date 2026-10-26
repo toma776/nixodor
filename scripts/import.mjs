@@ -215,6 +215,14 @@ tx(db, () => {
     }, {status: 'published', source: p.image ? S.felina : S.portalia, excerpt: p.name});
   }
 
+  // Linkul „Cumpără” al gamei: produsul de pe site-ul vechi (are imagine), altfel cea mai mică variantă fără parfum.
+  const qty = p => { const [n, u] = (p.size ?? '').split(' '); return Number(n || 0) * (u === 'ml' ? 0.001 : 1); };
+  for (const [k, line] of Object.entries(lineOf)) {
+    const own = catalog.filter(p => p.line === k);
+    const pick = own.find(p => p.image) ?? own.filter(p => !p.scent).sort((a, b) => qty(a) - qty(b))[0] ?? own[0];
+    if (pick) upsert('game', line.legacy_ref, {listings: [{id: portalia.id, attrs: {url: pick.url}}]});
+  }
+
   // Recenzii (citate: textul exact, sursa neverificată până o confirmă un om)
   const storeBy = {'Portalia.ro': portalia, 'eMAG.ro': emag};
   for (const r of json('analysis/reviews.json')) {

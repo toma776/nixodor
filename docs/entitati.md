@@ -97,7 +97,9 @@ Afirmațiile de produs („100% natural”, „nu provoacă alergii”, „recom
 
 ### 2.4 Produse (variante) — `produse` · O
 
-O variantă vândută: gamă + cantitate + parfum + ambalaj. **Fără pagină proprie**: se afișează pe pagina gamei. Titlul se calculează din câmpuri („Bioactivator fosă septică, 5 L”), nu se scrie de mână.
+O variantă vândută: gamă + cantitate + parfum + ambalaj. Titlul se calculează din câmpuri („Bioactivator fosă septică, 5 L”), nu se scrie de mână.
+
+**Decizie (26.10.2026, a utilizatorului):** variantele diferă doar prin cantitate sau parfum, deci **nu au pagină și nici card propriu**. Pagina gamei e generică. În „Despre produs” apare blocul generat **„Variante disponibile”** (de exemplu „1 L · 5 L · 10 L · 25 L”, pe rânduri pe parfum unde există), calculat din înregistrările publicate. Nu se scrie de mână în descriere (§0.2): o variantă adăugată sau retrasă în Brain apare sau dispare singură. Butoanele „Cumpără de la …” sunt la nivel de gamă (`game.listings`); variantele își păstrează în Brain linkurile proprii spre magazin, ca date. Câmpul `description` al variantei a dispărut. Textele cardurilor Felina vechi (5 și 10 kg) nu se mai afișează, pentru că repetă primul paragraf al descrierii gamei.
 
 | Câmp | Note |
 |---|---|
@@ -172,6 +174,7 @@ Paginile fixe: Acasă, Despre, De unde cumpăr, Contact, Termeni și condiții, 
 |---|---|---|---|
 | `produse.line_id` → `game` | `ref` obligatoriu, `RESTRICT` | aparține gamei / Variante | `owned`: variantele nu blochează nimic și nu apar în „Folosit de” |
 | `game.producer_id` → `producatori` | `ref` obligatoriu | produs de / Game | |
+| `game.listings` → `magazine` | `refs`, ordonat, `attrs: [url]` | se vinde la / Game | butoanele „Cumpără” ale paginii; la import: produsul de pe site-ul vechi sau cea mai mică variantă fără parfum |
 | `game.benefits` → `beneficii` | `refs`, ordonat | are beneficiul / Game | |
 | `game.uses` → `utilizari` | `refs` | rezolvă / Game | R |
 | `produse.listings` → `magazine` | `refs` + `attrs` (url, id extern) | se vinde la / Produse | |

@@ -69,6 +69,9 @@ export const ENTITIES = [
       {key: 'producer_id', label: 'Producător', type: 'ref', target: 'producatori', rel: 'e produsă de', inverseLabel: 'Game'},
       {key: 'benefits', label: 'Beneficii', type: 'refs', target: 'beneficii', ordered: true, rel: 'are beneficiul', inverseLabel: 'Game'},
       {key: 'uses', label: 'Utilizări', type: 'refs', target: 'utilizari', rel: 'rezolvă', inverseLabel: 'Game'},
+      // butoanele „Cumpără de la …” ale paginii: un link pe magazin, la nivel de gamă (variantele nu au carduri proprii)
+      {key: 'listings', label: 'Unde se vinde', type: 'refs', target: 'magazine', ordered: true, rel: 'se vinde la', inverseLabel: 'Game',
+       attrs: [{key: 'url', label: 'Adresa gamei în magazin', type: 'url'}]},
       {key: 'aliases', label: 'Alte nume (pentru detectare în texte)', type: 'list'},
       {key: 'meta_title', label: 'Titlu SEO', type: 'text'},
       {key: 'meta_description', label: 'Descriere SEO', type: 'textarea'}
@@ -87,7 +90,6 @@ export const ENTITIES = [
       {key: 'unit', label: 'Unitate', type: 'select', options: ['ml', 'L', 'kg'], list: true},
       {key: 'scent', label: 'Parfum', type: 'select', options: ['Lavandă', 'Pin']},
       {key: 'pack', label: 'Ambalaj', type: 'select', options: ['flacon', 'bidon', 'cutie carton', 'sac']},
-      {key: 'description', label: 'Descriere', type: 'textarea'},
       {key: 'ean', label: 'Cod EAN', type: 'text', unique: true},
       {key: 'image_id', label: 'Imagine', type: 'image'},
       {key: 'listings', label: 'Unde se vinde', type: 'refs', target: 'magazine', rel: 'se vinde la', inverseLabel: 'Produse',

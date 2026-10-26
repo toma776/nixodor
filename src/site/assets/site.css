@@ -284,8 +284,6 @@ p { margin: 0 0 1em; }
 .card img { height: 170px; width: auto; margin: 0 auto 8px; object-fit: contain; }
 .card strong { font-size: 1.15rem; color: var(--accent); }
 .card span { color: var(--muted); }
-.variant { padding: 18px; border: 1px solid var(--line); border-radius: var(--r); display: flex; flex-direction: column; gap: 10px; background: #fff; }
-.variant img { height: 140px; width: auto; margin: 0 auto; object-fit: contain; }
 /* --- pagina unei game (același șablon pentru toate) --- */
 .product-hero { position: relative; overflow: hidden; padding: clamp(36px, 5vw, 64px) 0 clamp(28px, 4vw, 48px); background: linear-gradient(180deg, var(--accent-bg) 0%, #fff 100%); }
 .product-hero h1 { max-width: 16ch; }
@@ -293,18 +291,12 @@ p { margin: 0 0 1em; }
 .product-hero .hero-pack { margin: 0; align-self: center; }
 .product-hero .hero-pack::before { background: radial-gradient(closest-side, var(--accent-bg), rgba(255, 255, 255, 0)); filter: none; inset: 4% 0 0; }
 .product-hero .hero-pack img { width: min(460px, 100%); max-height: 440px; object-fit: contain; filter: drop-shadow(0 24px 30px rgba(0, 30, 40, .2)); }
-.group-title { font-size: 1.15rem; margin: 28px 0 14px; padding-top: 18px; border-top: 1px solid var(--line); }
-.group-title:first-of-type { margin-top: 0; padding-top: 0; border: 0; }
-.variant-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: clamp(14px, 1.8vw, 20px); }
-.variant-card { display: flex; flex-direction: column; border-radius: var(--r-lg); background: var(--accent-bg); overflow: hidden; transition: transform .25s, box-shadow .25s; }
-.variant-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
-.variant-card .pic { margin: 14px 14px 0; display: grid; place-items: center; aspect-ratio: 4 / 3; padding: 14px; background: #fff; border-radius: var(--r); }   /* imaginile vechi au fundal alb: cadru unitar */
-.variant-card .pic img { width: 100%; height: 100%; object-fit: contain; }
-.variant-card .body { display: flex; flex-direction: column; gap: 8px; flex: 1; padding: 16px 20px 20px; }
-.variant-card h3 { margin: 0; font-size: 1.1rem; }
-.variant-card p { margin: 0; color: var(--ink-2); font-size: .95rem; }
-.variant-card .buy { margin-top: auto; padding-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
-.variant-card .buy .btn { width: 100%; }
+.variants { margin-top: 22px; padding: 18px 20px; border-radius: var(--r); background: #fff; border: 1px solid var(--line); }
+.variants h3 { margin: 0 0 10px; font-size: 1.05rem; }
+.variants dl { margin: 0; display: grid; gap: 6px; }
+.variants dl > div { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.variants dt { font-weight: 600; min-width: 7.5em; }
+.variants dd { margin: 0; color: var(--ink-2); }
 .about { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: start; }
 .about.single { grid-template-columns: minmax(0, 760px); }
 .about .prose > :first-child { margin-top: 0; }

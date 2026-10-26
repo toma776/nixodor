@@ -267,14 +267,28 @@ function pagina(ctx, p) {
 // Pagina unei game: un singur șablon pentru toate gamele. O secțiune fără date nu apare.
 const DETAILS = [['composition', 'Compoziție'], ['application', 'Mod de utilizare'], ['dosage', 'Dozare'], ['storage', 'Păstrare și valabilitate'], ['safety', 'Instrucțiuni de siguranță']];
 
-function variantCard(ctx, g, v, {grouped}) {
-  const buy = ctx.links('produse', v.id, 'listings', 'unde se vinde varianta').map(st => ({store: st, url: st._attrs?.url ?? st.url}));
-  const size = [v.size != null ? String(v.size).replace('.', ',') : null, v.unit].filter(Boolean).join(' ');
-  const name = grouped ? [size, v.pack].filter(Boolean).join(', ') : titleOf(BY_KEY.produse, {...v, name: v.name ?? g.short_name ?? g.name});
-  // fără imagine proprie, varianta folosește ambalajul gamei
-  const pic = ctx.media(v.image_id) ?? ctx.media(g.card_image_id ?? g.hero_image_id);
-  return `<li class="variant-card">${pic ? `<div class="pic">${img(pic, '', {alt: ''})}</div>` : ''}<div class="body"><h3>${esc(name)}</h3>${v.description ? `<p>${esc(v.description)}</p>` : ''}
-    <div class="buy">${buy.map(b => `<a class="btn small" href="${esc(b.url)}" target="_blank" rel="noopener">Cumpără de la ${esc(b.store.name)} <span class="arr" aria-hidden="true">→</span><span class="visually-hidden"> (se deschide într-o filă nouă)</span></a>`).join('')}</div></div></li>`;
+// Variantele diferă doar prin cantitate, parfum sau ambalaj: pe pagină apar ca o listă generată, nu drept carduri.
+const qty = v => (v.size ?? 0) * (v.unit === 'ml' ? 0.001 : 1);
+const sizeOf = v => [[v.size != null ? String(v.size).replace('.', ',') : null, v.unit].filter(Boolean).join(' '), v.pack].filter(Boolean).join(', ');
+
+function availability(variants) {
+  if (!variants.length) return '';
+  const groups = new Map();
+  for (const v of [...variants].sort((x, y) => qty(x) - qty(y))) {
+    const k = v.scent ?? '', list = groups.get(k) ?? [];
+    const label = sizeOf(v);
+    if (label && !list.includes(label)) list.push(label);
+    groups.set(k, list);
+  }
+  const rows = [...groups].filter(([, list]) => list.length);
+  if (!rows.length) return '';
+  const many = rows.length > 1;
+  return `<div class="variants"><h3>Variante disponibile</h3><dl>${rows.map(([scent, list]) =>
+    `<div>${many ? `<dt>${esc(scent || 'Fără parfum')}</dt>` : ''}<dd>${list.map(esc).join(' · ')}</dd></div>`).join('')}</dl></div>`;
+}
+
+function buyButtons(buy, cls) {
+  return buy.map((b, i) => `<a class="btn ${cls}${i ? ' secondary' : ''}" href="${esc(b.url)}" target="_blank" rel="noopener">Cumpără de la ${esc(b.store.name)} <span class="arr" aria-hidden="true">→</span><span class="visually-hidden"> (se deschide într-o filă nouă)</span></a>`).join('');
 }
 
 function gama(ctx, g) {
@@ -284,17 +298,13 @@ function gama(ctx, g) {
   const name = g.short_name ?? g.name;
   const variants = ctx.within('Variante', 'variantele gamei', () =>
     ctx.query('produse', {where: {line_id: g.id}, order: 'scent NULLS FIRST, unit, size, pack', scope: `game:${g.id}`, reason: 'variantele gamei'}));
-  // variantele cu parfumuri se grupează pe parfum; restul stau într-o singură listă
-  const groups = new Map();
-  for (const v of variants) { const k = v.scent ?? ''; groups.set(k, [...(groups.get(k) ?? []), v]); }
-  const grouped = groups.size > 1;
-  const variantHtml = variants.length ? `<section class="section" id="variante"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Variante</p><h2>Alege varianta potrivită</h2></div></div>
-    ${[...groups].map(([scent, list]) => `${grouped ? `<h3 class="group-title">${esc(scent ? `${name} ${scent}` : name)}</h3>` : ''}
-      <ul class="variant-grid" role="list">${list.map(v => variantCard(ctx, g, v, {grouped})).join('')}</ul>`).join('')}</div></section>` : '';
+  const buy = ctx.within('Cumpără', 'magazinele gamei', () => ctx.links('game', g.id, 'listings', 'unde se vinde gama'))
+    .map(st => ({store: st, url: st._attrs?.url ?? st.url})).filter(b => b.url);
+  const avail = availability(variants);
 
   const details = DETAILS.filter(([k]) => g[k]).map(([k, t], i) => `<details${i === 0 ? ' open' : ''}><summary>${t}</summary><div class="prose">${ctx.rich(g[k])}</div></details>`).join('');
-  const about = g.description || details ? `<section class="section soft" id="despre"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Despre produs</p><h2>${esc(g.name)}</h2></div></div>
-    <div class="about${details ? '' : ' single'}">${g.description ? `<div class="prose">${ctx.rich(g.description)}</div>` : ''}${details ? `<div class="details">${details}</div>` : ''}</div></div></section>` : '';
+  const about = g.description || details || avail ? `<section class="section soft" id="despre"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Despre produs</p><h2>${esc(g.name)}</h2></div></div>
+    <div class="about${details ? '' : ' single'}">${g.description || avail ? `<div class="prose">${ctx.rich(g.description)}${avail}</div>` : ''}${details ? `<div class="details">${details}</div>` : ''}</div></div></section>` : '';
 
   let scripts = '';
   const clip = g.video_id ? (scripts = PLAYER_JS, `<section class="section dark on-dark"><div class="wrap video-block"><div><p class="eyebrow">Video</p><h2>${esc(name)}, pe scurt</h2></div>
@@ -308,10 +318,10 @@ function gama(ctx, g) {
 
   const main = `<section class="product-hero"><div class="wrap hero-split"><div>
       <h1>${esc(g.name)}</h1>${g.tagline ? `<p class="lead">${esc(g.tagline)}</p>` : ''}${benefitsRow(ctx, g.id)}
-      <div class="actions">${variants.length ? `<a class="btn big" href="#variante">Vezi variantele <span class="arr" aria-hidden="true">→</span></a>` : ''}
-      ${pdf ? `<a class="btn big secondary" href="${esc(pdf.url)}" target="_blank" rel="noopener">Eticheta (PDF)<span class="visually-hidden"> (se deschide într-o filă nouă)</span></a>` : g.description || details ? `<a class="btn big secondary" href="#despre">Despre produs</a>` : ''}</div></div>
+      <div class="actions">${buyButtons(buy, 'big')}
+      ${pdf ? `<a class="btn big secondary" href="${esc(pdf.url)}" target="_blank" rel="noopener">Eticheta (PDF)<span class="visually-hidden"> (se deschide într-o filă nouă)</span></a>` : about ? `<a class="btn big secondary" href="#despre">Despre produs</a>` : ''}</div></div>
       ${hero ? `<div class="hero-pack">${img(hero, '', {eager: true})}</div>` : ''}</div></section>
-    ${variantHtml}${about}${clip}
+    ${about}${clip}
     ${reviews(ctx, g.id, `Ce spun clienții despre ${name}`, {eyebrow: 'Recenzii'})}
     ${articles.length ? `<section class="section"><div class="wrap"><div class="section-head"><div><p class="eyebrow">Blog</p><h2>Articole despre ${esc(name)}</h2></div></div><div class="grid g3">${articles.map(a => articleCard(ctx, a)).join('')}</div></div></section>` : ''}
     ${producer ? `<section class="section"><div class="wrap"><div class="tech">${img(ctx.media(producer.badge_id), '', {alt: producer.technology ?? producer.name})}
@@ -319,7 +329,7 @@ function gama(ctx, g) {
       <p class="meta"><strong>${esc(producer.name)}</strong>${esc(producer.country)}</p></div></div></section>` : ''}
     ${stores.length ? `<section class="section"><div class="wrap"><div class="cta-card on-dark"><div><p class="eyebrow">De unde cumpăr</p><h2>Găsești ${esc(name)} online</h2>
       <p>${esc(`Comandă de la ${stores.map(s => s.name).join(' sau ')}.`)}</p></div>
-      <div class="actions">${variants.length ? `<a class="btn big" href="#variante">Alege varianta <span class="arr" aria-hidden="true">→</span></a>` : ''}${allStores ? `<a class="btn big light" href="${esc(allStores)}">Toate magazinele <span class="arr" aria-hidden="true">→</span></a>` : ''}</div></div></div></section>` : ''}`;
+      <div class="actions">${buyButtons(buy, 'big')}${allStores ? `<a class="btn big light" href="${esc(allStores)}">Toate magazinele <span class="arr" aria-hidden="true">→</span></a>` : ''}</div></div></div></section>` : ''}`;
   return layout(ctx, {title: g.meta_title ?? g.name, description: g.meta_description ?? g.tagline, image: hero?.url, accent, scripts}, main);
 }
 
