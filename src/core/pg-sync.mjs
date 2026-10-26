@@ -2,6 +2,7 @@
 // ca nucleul Brain-ului să ruleze neschimbat și pe Supabase. Interogarea se face într-un worker;
 // firul principal așteaptă răspunsul (o funcție Vercel servește o cerere o dată, deci blocarea e acceptabilă).
 import {Worker, MessageChannel, receiveMessageOnPort} from 'node:worker_threads';
+import 'pg';   // driverul îl folosește doar worker-ul; importul de aici îl face vizibil pentru bundler-ul Vercel
 
 // SQL-ul nucleului e scris portabil; aici traducem doar ce diferă: parametrii „?” → „$n”
 // și id-ul rândului inserat (RETURNING), în locul lui lastInsertRowid din SQLite.

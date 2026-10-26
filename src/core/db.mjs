@@ -90,6 +90,11 @@ export function migrate(db) {
   // instr() există în SQLite; în Postgres o definim peste strpos(), ca SQL-ul nucleului să rămână același
   if (db.dialect === 'pg') db.exec(`CREATE OR REPLACE FUNCTION instr(text, text) RETURNS integer LANGUAGE sql IMMUTABLE SET search_path = '' AS 'SELECT strpos($1, $2)'`);
   for (const stmt of SYSTEM.split(';').map(x => x.trim()).filter(Boolean)) run(db, stmt);
+  // coloane adăugate ulterior în tabelele sistemului (HTML-ul paginii în index, ca o instanță nouă să nu mai randeze)
+  for (const [table, cols] of [['page_index', [['html', 'TEXT'], ['type', 'TEXT']]]]) {
+    const have = new Set(tableColumns(db, table));
+    for (const [n, d] of cols) if (!have.has(n)) run(db, `ALTER TABLE ${table} ADD COLUMN "${n}" ${d}`);
+  }
   // Tabelele entităților, în ordinea dependențelor (ținta unei chei străine înaintea sursei).
   const done = new Set(), order = [];
   const visit = e => {
