@@ -7,6 +7,8 @@ import {createGraph} from '../core/graph.mjs';
 import {inferredGroups} from './api.mjs';
 
 const CATEGORIES = {produse: 'Produse', vanzare: 'Vânzare', continut: 'Conținut', firma: 'Firma', sistem: 'Sistem'};
+const CATEGORY_INFO = {produse: 'Gamele, variantele și ce le face utile.', vanzare: 'Unde se cumpără și ce spun clienții.', continut: 'Paginile, blogul și secțiunile lor.',
+  firma: 'Datele de contact folosite pe tot site-ul.', sistem: 'Meniuri, redirecționări și fișiere.'};
 const STATUS = {draft: 'Ciornă', published: 'Publicat', archived: 'Arhivat'};
 const LINK_STATUS = {confirmed: 'confirmată', inferred: 'dedusă', unverified: 'neverificată'};
 const CERTAINTY = {confirmed: 'confirmată', inferred: 'dedusă', unverified: 'neverificată', unrecoverable: 'nerecuperabilă'};
@@ -28,6 +30,7 @@ const action = a => ACTIONS[a] ?? a;
 // iconițe line style, 24×24, culoarea textului
 const ICONS = {
   home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+  grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
   external: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>',
   map: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="8" r="2.5"/><circle cx="10" cy="18" r="2.5"/><path d="M8.3 7l7.3.7M7 8.3l2.2 7.4M16.4 10l-4.7 6.3"/>',
@@ -71,7 +74,7 @@ export function createViews(app) {
 <span class="who" title="${esc(user.name)} · ${esc(user.role)}"><span class="avatar">${esc(initials)}</span>${user.id ? `<a href="/manage/logout/">Ieșire</a>` : ''}</span></header>
 <div class="shell"><nav class="side" aria-label="Meniu">
 <a href="/manage/" class="home${active === 'panou' ? ' on' : ''}">${icon('home')}Panou</a>
-${Object.entries(CATEGORIES).map(([c, l]) => { const types = ENTITIES.filter(e => e.category === c && e.hub !== false); return types.length ? `<p>${l}</p>${types.map(e => `<a href="${typeHref(e)}"${active === e.key ? ' class="on"' : ''}><i style="background:${e.color}"></i><span>${esc(e.label)}</span>${e.singleton ? '' : `<small>${store.count(e.key)}</small>`}</a>`).join('')}` : ''; }).join('')}
+<a href="/manage/entitati/"${active === 'entitati' || BY_KEY[active] ? ' class="on"' : ''}>${icon('grid')}<span>Entități</span></a>
 <p>Instrumente</p>${tools.map(([h, l, k, ic, n, cls]) => `<a href="${h}"${k === active ? ' class="on"' : ''}>${icon(ic)}<span>${l}</span>${n ? `<b class="pill ${cls ?? ''}">${n}</b>` : ''}</a>`).join('')}
 </nav>
 <main class="main"><div id="live-banner" hidden></div>${body}</main></div>
@@ -112,9 +115,17 @@ ${Object.entries(CATEGORIES).map(([c, l]) => { const types = ENTITIES.filter(e =
   }
 
   // --- Entități ---------------------------------------------------------------------------
+  // Entitățile: un card pe grup, cu tipurile lui (numărul, ultima modificare, „+” pentru una nouă)
   function entitiesHome(user) {
-    return layout(user, {title: 'Entități', active: 'entitati'}, `<h1>Entități</h1>${Object.entries(CATEGORIES).map(([c, l]) => `<h2>${l}</h2><div class="stats">${
-      ENTITIES.filter(e => e.category === c && e.hub !== false).map(e => `<a class="stat" href="/manage/entitati/${e.key}/" style="border-color:${e.color}"><b>${store.count(e.key)}</b><span>${esc(e.label)}</span></a>`).join('')}</div>`).join('')}`);
+    const last = e => q(`SELECT MAX(updated_at) t FROM ${e.table}`).get().t;
+    const cards = Object.entries(CATEGORIES).map(([c, l]) => {
+      const types = ENTITIES.filter(e => e.category === c && e.hub !== false);
+      if (!types.length) return '';
+      const total = types.reduce((s, e) => s + (e.singleton ? 0 : store.count(e.key)), 0);
+      return `<section class="group-card"><header><h2>${esc(l)}</h2><p>${esc(CATEGORY_INFO[c] ?? '')}</p>${total ? `<span class="total">${total}</span>` : ''}</header>
+        <ul>${types.map(e => { const t = last(e); return `<li><a href="${typeHref(e)}"><i style="background:${e.color}"></i><span><b>${esc(e.label)}</b><small>${t ? `modificat ${esc(ago(t))}` : 'nimic încă'}</small></span>${e.singleton ? '' : `<em>${store.count(e.key)}</em>`}</a>${e.singleton ? '' : `<a class="add-one" href="/manage/entitati/${e.key}/nou/" title="${esc(e.one)} nou${e.one.endsWith('ă') ? 'ă' : ''}" aria-label="Adaugă ${esc(e.one.toLowerCase())}">${icon('plus')}</a>`}</li>`; }).join('')}</ul></section>`;
+    }).join('');
+    return layout(user, {title: 'Entități', active: 'entitati'}, `<div class="page-head"><div><h1>Entități</h1><p class="lead">Tot conținutul site-ului, pe grupuri.</p></div></div><div class="groups">${cards}</div>`);
   }
 
   const appearsIn = (key, id) => q(`SELECT COUNT(DISTINCT path) n FROM page_deps WHERE entity = ? AND entity_id = ? AND kind != 'pending' AND path NOT LIKE '#%'`).get(key, id).n
@@ -133,7 +144,7 @@ ${Object.entries(CATEGORIES).map(([c, l]) => { const types = ENTITIES.filter(e =
       return esc(String(v).slice(0, 80));
     };
     const cat = CATEGORIES[e.category];
-    return layout(user, {title: e.label, active: key}, `<div class="page-head"><div>${cat === e.label ? '' : `<p class="crumbs">${esc(cat)}</p>`}<h1>${esc(e.label)} <small>${rows.length}</small></h1></div>
+    return layout(user, {title: e.label, active: key}, `<div class="page-head"><div><p class="crumbs"><a href="/manage/entitati/">Entități</a>${cat === e.label ? '' : ` › ${esc(cat)}`}</p><h1>${esc(e.label)} <small>${rows.length}</small></h1></div>
       ${e.singleton && rows.length ? '' : `<a class="btn" href="/manage/entitati/${key}/nou/">${icon('plus')}${e.one} nou${e.one.endsWith('ă') ? 'ă' : ''}</a>`}</div>
       <form class="filters" role="search"><label class="field-search">${icon('search')}<input name="q" value="${esc(search)}" placeholder="Caută în ${esc(e.label.toLowerCase())}" aria-label="Caută"></label>${e.noStatus ? '' : `<select name="status" aria-label="Starea" data-autosubmit><option value="">Toate stările</option>${Object.entries(STATUS).map(([k, l]) => `<option value="${k}"${status === k ? ' selected' : ''}>${l}</option>`).join('')}</select>`}<button class="btn ghost">Caută</button></form>
       ${rows.length ? '' : `<p class="empty">${search || status ? 'Nimic nu corespunde căutării.' : 'Nicio înregistrare încă.'}</p>`}
@@ -192,7 +203,7 @@ ${Object.entries(CATEGORIES).map(([c, l]) => { const types = ENTITIES.filter(e =
 
   function newEntity(user, key) {
     const e = entity(key);
-    return layout(user, {title: `${e.one} nou`, active: key}, `<div class="page-head"><div><p class="crumbs"><a href="/manage/entitati/${key}/">${esc(e.label)}</a></p><h1>${esc(e.one)} nou${e.one.endsWith('ă') ? 'ă' : ''}</h1></div></div>
+    return layout(user, {title: `${e.one} nou`, active: key}, `<div class="page-head"><div><p class="crumbs"><a href="/manage/entitati/">Entități</a> › <a href="/manage/entitati/${key}/">${esc(e.label)}</a></p><h1>${esc(e.one)} nou${e.one.endsWith('ă') ? 'ă' : ''}</h1></div></div>
       <div class="card">${form(e, null)}</div><div id="result"></div>
       <div class="savebar"><span class="muted">${e.noStatus ? '' : 'O ciornă nu apare pe site până o publici.'}</span>${e.noStatus ? '<button class="btn" data-action="create">Salvează</button>' : `<button class="btn ghost" data-action="create">Salvează ca ciornă</button><button class="btn" data-action="create-publish">Salvează și publică</button>`}</div>`);
   }
@@ -216,7 +227,7 @@ ${Object.entries(CATEGORIES).map(([c, l]) => { const types = ENTITIES.filter(e =
     const menu = [!e.noStatus && rec.status === 'published' ? `<button data-action="status" data-status="draft">Retrage de pe site</button>` : '',
       !e.noStatus && rec.status !== 'archived' ? `<button data-action="status" data-status="archived">Arhivează</button>` : '',
       `<button class="danger" data-action="delete">Șterge</button>`].join('');
-    const head = `<div class="page-head"><div><p class="crumbs">${CATEGORIES[e.category] === e.label ? '' : `${esc(CATEGORIES[e.category])} › `}<a href="${typeHref(e) === eurl(key, id) ? '#' : `/manage/entitati/${key}/`}">${esc(e.label)}</a></p>
+    const head = `<div class="page-head"><div><p class="crumbs"><a href="/manage/entitati/">Entități</a> › ${CATEGORIES[e.category] === e.label ? '' : `${esc(CATEGORIES[e.category])} › `}<a href="${typeHref(e) === eurl(key, id) ? '#' : `/manage/entitati/${key}/`}">${esc(e.label)}</a></p>
       <h1>${esc(titleOf(e, draft))} ${e.noStatus ? '' : badge(rec.status)}${rec.draft ? ' <span class="badge s-draft">ciornă nepublicată</span>' : ''}</h1>
       <p class="meta">${path ? `<a href="${esc(path)}" target="_blank" rel="noopener">${esc(path)} ${icon('external')}</a><span>·</span>` : ''}<span title="${esc(fmt(rec.updated_at))}">Actualizat ${esc(ago(rec.updated_at))} de ${esc(rec.updated_by ?? '—')}</span></p></div>
       <div class="actions">${path ? `<a class="btn ghost" href="/manage/previzualizare${esc(path)}" target="_blank">${icon('eye')}Previzualizează</a>` : ''}
