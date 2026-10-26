@@ -68,7 +68,7 @@ export function createViews(app) {
 <body data-user="${esc(user.name)}"><header class="top"><a class="brand" href="/manage/"><span class="mark" aria-hidden="true"></span>NIXODOR <span>Brain</span></a>
 <form class="search" action="/manage/cautare/" role="search">${icon('search')}<input name="q" placeholder="Caută produse, pagini, articole…" aria-label="Caută în Brain"></form>
 <a class="site" href="/" target="_blank" rel="noopener">Vezi site-ul ${icon('external')}</a>
-<span class="who" title="${esc(user.name)} · ${esc(user.role)}"><span class="avatar">${esc(initials)}</span>${user.local ? '' : `<a href="/manage/logout/">Ieșire</a>`}</span></header>
+<span class="who" title="${esc(user.name)} · ${esc(user.role)}"><span class="avatar">${esc(initials)}</span>${user.id ? `<a href="/manage/logout/">Ieșire</a>` : ''}</span></header>
 <div class="shell"><nav class="side" aria-label="Meniu">
 <a href="/manage/" class="home${active === 'panou' ? ' on' : ''}">${icon('home')}Panou</a>
 ${Object.entries(CATEGORIES).map(([c, l]) => { const types = ENTITIES.filter(e => e.category === c && e.hub !== false); return types.length ? `<p>${l}</p>${types.map(e => `<a href="${typeHref(e)}"${active === e.key ? ' class="on"' : ''}><i style="background:${e.color}"></i><span>${esc(e.label)}</span>${e.singleton ? '' : `<small>${store.count(e.key)}</small>`}</a>`).join('')}` : ''; }).join('')}

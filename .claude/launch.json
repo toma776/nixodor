@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    {"name": "nixodor", "runtimeExecutable": "node", "runtimeArgs": ["src/server.mjs"], "port": 4310}
+    {"name": "nixodor", "runtimeExecutable": "node", "runtimeArgs": ["src/server.mjs"], "port": 4310},
+    {"name": "nixodor-panel", "runtimeExecutable": "node", "runtimeArgs": ["src/server.mjs"], "port": 4320, "env": {"PORT": "4320"}}
   ]
 }
