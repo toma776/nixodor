@@ -8,7 +8,7 @@ export function createGraph(store) {
     const s = BY_KEY[r.source];
     if (r.cardinality === 'M:N') {
       const row = q(`SELECT COUNT(*) n, COUNT(DISTINCT src_id) srcs, COUNT(DISTINCT dst_id) dsts,
-        SUM(status = 'confirmed') confirmed, SUM(status = 'inferred') inferred, SUM(status = 'unverified') unverified FROM ${r.storage}`).get();
+        SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) confirmed, SUM(CASE WHEN status = 'inferred' THEN 1 ELSE 0 END) inferred, SUM(CASE WHEN status = 'unverified' THEN 1 ELSE 0 END) unverified FROM ${r.storage}`).get();
       return {...row};
     }
     const row = q(`SELECT COUNT("${r.field}") n, COUNT(DISTINCT CASE WHEN "${r.field}" IS NOT NULL THEN id END) srcs, COUNT(DISTINCT "${r.field}") dsts FROM ${s.table}`).get();

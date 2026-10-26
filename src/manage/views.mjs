@@ -288,7 +288,7 @@ export function createViews(app) {
 
   // --- Surse și legături de verificat --------------------------------------------------------------
   function sources(user) {
-    const rows = q(`SELECT s.*, COUNT(p.id) n, SUM(p.certainty != 'confirmed') unsure FROM sources s LEFT JOIN provenance p ON p.source_id = s.id GROUP BY s.id ORDER BY s.kind, s.url`).all();
+    const rows = q(`SELECT s.*, COUNT(p.id) n, SUM(CASE WHEN p.certainty != 'confirmed' THEN 1 ELSE 0 END) unsure FROM sources s LEFT JOIN provenance p ON p.source_id = s.id GROUP BY s.id ORDER BY s.kind, s.url`).all();
     return layout(user, {title: 'Surse', active: 'surse'}, `<h1>Surse <small>${rows.length}</small></h1><table class="t"><thead><tr><th>Tip</th><th>Sursă</th><th>Descărcată</th><th>Metodă</th><th>Informații</th><th>Nesigure</th></tr></thead><tbody>
       ${rows.map(s => `<tr><td>${esc(s.kind)}</td><td>${/^https?:/.test(s.url) ? `<a href="${esc(s.url)}" target="_blank">${esc(s.title ?? s.url)}</a>` : esc(s.title ?? s.url)}<br><small class="muted">${esc(s.snapshot_file ?? '')}</small></td>
       <td>${fmt(s.fetched_at)}</td><td>${esc(s.method ?? '')}</td><td>${s.n}</td><td>${s.unsure ? `<b class="err">${s.unsure}</b>` : ''}</td></tr>`).join('')}</tbody></table>`);

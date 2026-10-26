@@ -3,3 +3,5 @@
 *.db-wal
 *.db-shm
 /reference/snapshot/
+.env.local
+.env

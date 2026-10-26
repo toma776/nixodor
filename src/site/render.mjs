@@ -283,7 +283,7 @@ function gama(ctx, g) {
   const hero = ctx.media(g.card_image_id ?? g.hero_image_id);
   const name = g.short_name ?? g.name;
   const variants = ctx.within('Variante', 'variantele gamei', () =>
-    ctx.query('produse', {where: {line_id: g.id}, order: 'scent, unit, size, pack', scope: `game:${g.id}`, reason: 'variantele gamei'}));
+    ctx.query('produse', {where: {line_id: g.id}, order: 'scent NULLS FIRST, unit, size, pack', scope: `game:${g.id}`, reason: 'variantele gamei'}));
   // variantele cu parfumuri se grupează pe parfum; restul stau într-o singură listă
   const groups = new Map();
   for (const v of variants) { const k = v.scent ?? ''; groups.set(k, [...(groups.get(k) ?? []), v]); }
