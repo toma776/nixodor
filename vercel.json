@@ -1,0 +1,41 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": [
+    "fra1"
+  ],
+  "framework": null,
+  "buildCommand": null,
+  "outputDirectory": "public",
+  "functions": {
+    "api/index.mjs": {
+      "includeFiles": "src/**",
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/media/(.*)",
+      "headers": [
+        {
+          "key": "cache-control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "x-robots-tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    }
+  ]
+}
