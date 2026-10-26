@@ -147,9 +147,7 @@ export function createContext(store, {path, preview = false} = {}) {
       dep('media', 'media', id);
       if (!r) return null;
       const v = (r.updated_at ?? '').replace(/\D/g, '').slice(0, 17);
-      // în Supabase Storage fișierul se servește direct de CDN-ul lor; local, prin /media/<id>/
-      const url = store.mediaBase ? `${store.mediaBase}/${r.file}?v=${v}` : `/media/${r.id}/${encodeURIComponent(r.name)}?v=${v}`;
-      return {url, alt: r.alt ?? '', width: r.width, height: r.height, mime: r.mime, rec: r};
+      return {url: `/media/${r.id}/${encodeURIComponent(r.name)}?v=${v}`, alt: r.alt ?? '', width: r.width, height: r.height, mime: r.mime, rec: r};
     },
 
     tokens(text) {

@@ -297,7 +297,7 @@ function gama(ctx, g) {
   const hero = ctx.media(g.card_image_id ?? g.hero_image_id);
   const name = g.short_name ?? g.name;
   const variants = ctx.within('Variante', 'variantele gamei', () =>
-    ctx.query('produse', {where: {line_id: g.id}, order: 'scent NULLS FIRST, unit, size, pack', scope: `game:${g.id}`, reason: 'variantele gamei'}));
+    ctx.query('produse', {where: {line_id: g.id}, order: 'scent, unit, size, pack', scope: `game:${g.id}`, reason: 'variantele gamei'}));
   const buy = ctx.within('Cumpără', 'magazinele gamei', () => ctx.links('game', g.id, 'listings', 'unde se vinde gama'))
     .map(st => ({store: st, url: st._attrs?.url ?? st.url})).filter(b => b.url);
   const avail = availability(variants);

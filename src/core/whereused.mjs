@@ -73,7 +73,7 @@ export function whereUsed(store, key, id) {
     for (const s of Object.values(BY_KEY)) {
       const cols = s.fields.filter(f => ['richtext', 'textarea'].includes(f.type)).map(f => f.key);
       if (!cols.length) continue;
-      const rows = q(`SELECT id FROM ${s.table} WHERE ${cols.map(c => `instr(COALESCE("${c}",''), ?)`).join(' OR ')}`).all(...cols.map(() => `{${name}}`));
+      const rows = q(`SELECT id FROM ${s.table} WHERE ${cols.map(c => `instr(IFNULL("${c}",''), ?)`).join(' OR ')}`).all(...cols.map(() => `{${name}}`));
       for (const r of rows) autofill.push({token: `{${name}}`, field: t.field, key: s.key, id: r.id, title: titleOf(s, store.read(s.key, r.id))});
     }
   }

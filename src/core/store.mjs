@@ -76,7 +76,7 @@ export function createStore(db) {
     for (const e of ENTITIES) {
       const cols = e.fields.filter(f => ['richtext', 'textarea', 'links', 'text'].includes(f.type)).map(f => `"${f.key}"`);
       if (!cols.length) continue;
-      const cond = needles.map(() => `(${cols.map(c => `instr(COALESCE(${c},''), ?)`).join(' OR ')}${e.noStatus ? '' : ` OR instr(COALESCE(draft,''), ?)`})`).join(' OR ');
+      const cond = needles.map(() => `(${cols.map(c => `instr(IFNULL(${c},''), ?)`).join(' OR ')}${e.noStatus ? '' : ` OR instr(IFNULL(draft,''), ?)`})`).join(' OR ');
       const args = needles.flatMap(n => [...cols.map(() => n), ...(e.noStatus ? [] : [n])]);
       for (const row of q(`SELECT * FROM ${e.table} WHERE ${cond}`).all(...args))
         if (!(e.key === key && row.id === id) && !out.some(o => o.key === e.key && o.id === row.id))
@@ -476,7 +476,7 @@ export function createStore(db) {
       if (!row) fail(404, 'legătura nu există');
       if (status === 'dismissed') {
         q(`DELETE FROM ${rt} WHERE src_id = ? AND dst_id = ?`).run(id, dst);
-        q('INSERT INTO link_dismissals (relation, src_id, dst_id, evidence, at, "by") VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (relation, src_id, dst_id) DO UPDATE SET evidence = excluded.evidence, at = excluded.at, "by" = excluded."by"').run(`${key}.${field}`, id, dst, row.note, nowIso(), user.name);
+        q('INSERT OR REPLACE INTO link_dismissals (relation, src_id, dst_id, evidence, at, by) VALUES (?, ?, ?, ?, ?, ?)').run(`${key}.${field}`, id, dst, row.note, nowIso(), user.name);
       } else q(`UPDATE ${rt} SET status = ?, note = COALESCE(?, note) WHERE src_id = ? AND dst_id = ?`).run(status, note ?? null, id, dst);
       audit(user, 'link-status', key, id, titleOf(e, cur), {[`${field}:${dst}`]: [row.status, status]}, null);
       if (isLive(e, cur) && (row.status === 'confirmed') !== (status === 'confirmed'))
@@ -500,7 +500,7 @@ export function createStore(db) {
         if (!row) continue;
         if (status === 'dismissed') {
           q(`DELETE FROM ${rt} WHERE src_id = ? AND dst_id = ?`).run(src, dst);
-          q('INSERT INTO link_dismissals (relation, src_id, dst_id, evidence, at, "by") VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (relation, src_id, dst_id) DO UPDATE SET evidence = excluded.evidence, at = excluded.at, "by" = excluded."by"').run(relation, src, dst, row.note, nowIso(), user.name);
+          q('INSERT OR REPLACE INTO link_dismissals (relation, src_id, dst_id, evidence, at, by) VALUES (?, ?, ?, ?, ?, ?)').run(relation, src, dst, row.note, nowIso(), user.name);
         } else q(`UPDATE ${rt} SET status = ? WHERE src_id = ? AND dst_id = ?`).run(status, src, dst);
         audit(user, 'link-status', key, src, null, {[`${field}:${dst}`]: [row.status, status]}, null);
         touched.push({key, id: src}, {key: f.target, id: dst});
@@ -542,21 +542,21 @@ export function createStore(db) {
             q(`UPDATE ${s.table} SET "${r.field}" = ? WHERE "${r.field}" = ?`).run(keepId, dup);
           } else {
             for (const x of q(`SELECT src_id FROM ${r.storage} WHERE dst_id = ?`).all(dup)) touched.push({key: r.source, id: x.src_id});
-            q(`INSERT INTO ${r.storage} (src_id, dst_id, position, status, confidence, source_id, note, attrs, created_at, created_by)
-               SELECT src_id, ?, position, status, confidence, source_id, note, attrs, created_at, created_by FROM ${r.storage} WHERE dst_id = ? AND src_id != ? ON CONFLICT DO NOTHING`).run(keepId, dup, keepId);
+            q(`INSERT OR IGNORE INTO ${r.storage} (src_id, dst_id, position, status, confidence, source_id, note, attrs, created_at, created_by)
+               SELECT src_id, ?, position, status, confidence, source_id, note, attrs, created_at, created_by FROM ${r.storage} WHERE dst_id = ? AND src_id != ?`).run(keepId, dup, keepId);
             q(`DELETE FROM ${r.storage} WHERE dst_id = ?`).run(dup);
           }
         }
         for (const f of relFields(e)) {
           const rt = relTable(e, f);
-          q(`INSERT INTO ${rt} (src_id, dst_id, position, status, confidence, source_id, note, attrs, created_at, created_by)
-             SELECT ?, dst_id, position, status, confidence, source_id, note, attrs, created_at, created_by FROM ${rt} WHERE src_id = ? ON CONFLICT DO NOTHING`).run(keepId, dup);
+          q(`INSERT OR IGNORE INTO ${rt} (src_id, dst_id, position, status, confidence, source_id, note, attrs, created_at, created_by)
+             SELECT ?, dst_id, position, status, confidence, source_id, note, attrs, created_at, created_by FROM ${rt} WHERE src_id = ?`).run(keepId, dup);
         }
         // linkurile din texte, inclusiv din ciorne
         for (const s of ENTITIES) {
           const cols = s.fields.filter(f => ['richtext', 'textarea', 'links', 'text', 'url'].includes(f.type)).map(f => f.key).concat(s.noStatus ? [] : ['draft']);
           for (const c of cols) {
-            const rows = q(`SELECT id, "${c}" v FROM ${s.table} WHERE instr(COALESCE("${c}",''), ?) OR instr(COALESCE("${c}",''), ?)`).all(`ref:${key}:${dup}`, `data-ref="${key}:${dup}"`);
+            const rows = q(`SELECT id, "${c}" v FROM ${s.table} WHERE instr(IFNULL("${c}",''), ?) OR instr(IFNULL("${c}",''), ?)`).all(`ref:${key}:${dup}`, `data-ref="${key}:${dup}"`);
             for (const row of rows) {
               const v = row.v.replace(new RegExp(`ref:${key}:${dup}(?!\\d)`, 'g'), `ref:${key}:${keepId}`).replace(new RegExp(`data-ref="${key}:${dup}"`, 'g'), `data-ref="${key}:${keepId}"`);
               q(`UPDATE ${s.table} SET "${c}" = ? WHERE id = ?`).run(v, row.id);
@@ -564,9 +564,7 @@ export function createStore(db) {
             }
           }
         }
-        // sursele dublurii trec pe înregistrarea păstrată, fără să dubleze o sursă pe care o are deja
-        q('DELETE FROM provenance WHERE entity = ? AND entity_id = ? AND EXISTS (SELECT 1 FROM provenance k WHERE k.entity = provenance.entity AND k.entity_id = ? AND k.field = provenance.field AND k.source_id = provenance.source_id)').run(key, dup, keepId);
-        q('UPDATE provenance SET entity_id = ? WHERE entity = ? AND entity_id = ?').run(keepId, key, dup);
+        q('UPDATE OR IGNORE provenance SET entity_id = ? WHERE entity = ? AND entity_id = ?').run(keepId, key, dup);
         q('DELETE FROM provenance WHERE entity = ? AND entity_id = ?').run(key, dup);
         const before = snap(e, d);
         q(`DELETE FROM ${e.table} WHERE id = ?`).run(dup);

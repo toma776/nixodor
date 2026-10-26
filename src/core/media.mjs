@@ -1,9 +1,9 @@
-// Fișierele media: același conținut nu se încarcă de două ori (amprenta SHA-1, §3.9). Înlocuirea păstrează ID-ul.
+// Fișierele media: același conținut nu se încarcă de două ori (amprenta SHA-1, §3.9).
+// Înlocuirea păstrează ID-ul; fișierul nou se scrie după COMMIT.
 import {createHash} from 'node:crypto';
 import {writeFileSync, mkdirSync, existsSync} from 'node:fs';
 import {join, extname} from 'node:path';
-import {tx} from './db.mjs';
-import {fetchSync} from './sync-fetch.mjs';
+import {afterCommit, tx} from './db.mjs';
 
 const MIME = {'.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.pdf': 'application/pdf'};
 export const mimeOf = name => MIME[extname(name).toLowerCase()] ?? 'application/octet-stream';
@@ -25,35 +25,23 @@ export function dimensions(buf, mime) {
   return {width: null, height: null};
 }
 
-// Unde stau fișierele: local (un folder) sau Supabase Storage (bucket public, servit direct de CDN-ul lor).
-// Numele fișierului e amprenta conținutului, deci scrierea lui înainte de COMMIT nu poate suprascrie nimic:
-// dacă tranzacția eșuează, rămâne doar un fișier nefolosit.
-export function createMedia(store, dir, {storage} = {}) {
-  if (!storage) mkdirSync(dir, {recursive: true});
+export function createMedia(store, dir) {
+  mkdirSync(dir, {recursive: true});
   const describe = (buf, name) => {
     const sha1 = createHash('sha1').update(buf).digest('hex'), mime = mimeOf(name);
     return {sha1, mime, size: buf.length, file: sha1 + (extname(name).toLowerCase() || ''), ...dimensions(buf, mime)};
   };
-
-  function put(file, buf, mime) {
-    if (!storage) {
-      const p = join(dir, file);
-      if (!existsSync(p)) writeFileSync(p, buf);
-      return;
-    }
-    const r = fetchSync(`${storage.url}/storage/v1/object/${storage.bucket}/${file}`, {method: 'POST', body: buf,
-      headers: {authorization: `Bearer ${storage.key}`, apikey: storage.key, 'content-type': mime, 'cache-control': 'max-age=31536000', 'x-upsert': 'true'}});
-    if (!r.ok) throw Object.assign(new Error(`Supabase Storage: ${r.status} ${r.text().slice(0, 200)}`), {status: 502});
-  }
-
-  const publicUrl = rec => storage ? `${storage.url}/storage/v1/object/public/${storage.bucket}/${rec.file}` : null;
+  const writeFile = (file, buf) => { const p = join(dir, file); if (!existsSync(p)) writeFileSync(p, buf); };
 
   function add(user, buf, {name, alt, legacy_ref} = {}) {
     const d = describe(buf, name);
     const existing = store.list('media', {where: {sha1: d.sha1}})[0];
     if (existing) return {...existing, _existing: true};
-    put(d.file, buf, d.mime);
-    return tx(store.db, () => store.create(user, 'media', {name, alt: alt ?? '', ...d}, {legacy_ref}));
+    return tx(store.db, () => {
+      const rec = store.create(user, 'media', {name, alt: alt ?? '', ...d}, {legacy_ref});
+      afterCommit(store.db, () => writeFile(d.file, buf));
+      return rec;
+    });
   }
 
   function replace(user, id, buf, {name} = {}) {
@@ -62,9 +50,12 @@ export function createMedia(store, dir, {storage} = {}) {
     const d = describe(buf, name ?? cur.name);
     const same = store.list('media', {where: {sha1: d.sha1}})[0];
     if (same && same.id !== id) throw Object.assign(new Error(`Același conținut există deja în bibliotecă: ${same.name} (media ${same.id}).`), {status: 409});
-    put(d.file, buf, d.mime);
-    return tx(store.db, () => store.update(user, 'media', id, {name: name ?? cur.name, ...d}, {live: true, system: true}));
+    return tx(store.db, () => {
+      const rec = store.update(user, 'media', id, {name: name ?? cur.name, ...d}, {live: true, system: true});
+      afterCommit(store.db, () => writeFile(d.file, buf));
+      return rec;
+    });
   }
 
-  return {add, replace, put, publicUrl, path: rec => join(dir, rec.file), remote: !!storage};
+  return {add, replace, path: rec => join(dir, rec.file)};
 }

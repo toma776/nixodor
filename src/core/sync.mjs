@@ -29,20 +29,11 @@ export function createSync(store, {render = renderSite, log = () => {}} = {}) {
       q('DELETE FROM page_deps WHERE path = ?').run(lp);
       for (const d of list) put(lp, d);
     }
-    q(`INSERT INTO page_index (path, owner_entity, owner_id, title, status, rendered_at, hash, deps, error, stale, html, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, 0, ?, ?)
+    q(`INSERT INTO page_index (path, owner_entity, owner_id, title, status, rendered_at, hash, deps, error, stale) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, 0)
        ON CONFLICT(path) DO UPDATE SET owner_entity = excluded.owner_entity, owner_id = excluded.owner_id, title = excluded.title, status = excluded.status,
-       rendered_at = excluded.rendered_at, hash = excluded.hash, deps = excluded.deps, error = NULL, stale = 0, html = excluded.html, type = excluded.type`)
-      .run(path, r.owner?.key ?? null, r.owner?.id ?? null, r.title ?? null, r.status, nowIso(), hash, r.deps.length, r.html, r.type ?? null);
+       rendered_at = excluded.rendered_at, hash = excluded.hash, deps = excluded.deps, error = NULL, stale = 0`)
+      .run(path, r.owner?.key ?? null, r.owner?.id ?? null, r.title ?? null, r.status, nowIso(), hash, r.deps.length);
     return hash;
-  }
-
-  // Mai multe instanțe (Vercel, §3.12): memoria unei instanțe se golește când alta a scris în bază.
-  // Ultimul eveniment e „versiunea datelor”; o singură interogare ieftină pe cerere.
-  let seenVersion = null;
-  function checkVersion() {
-    const v = q('SELECT MAX(id) AS v FROM change_events').get()?.v ?? 0;
-    if (seenVersion !== null && v !== seenVersion) cache.clear();
-    seenVersion = v;
   }
 
   function dropIndex(path) {
@@ -61,12 +52,8 @@ export function createSync(store, {render = renderSite, log = () => {}} = {}) {
   }
 
   function get(path) {
-    checkVersion();
     const hit = cache.get(path);
     if (hit) return hit;
-    // altă instanță a randat-o deja: o luăm din index, fără să o mai randăm
-    const row = q('SELECT html, type FROM page_index WHERE path = ? AND stale = 0 AND error IS NULL AND html IS NOT NULL').get(path);
-    if (row) { const page = {status: 200, html: row.html, type: row.type ?? undefined}; cache.set(path, page); return page; }
     const r = build(path);
     return {status: r.status, html: r.html, type: r.type};
   }

@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {readFileSync, existsSync, statSync} from 'node:fs';
 import {join, extname, normalize} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {createApp, SERVERLESS} from './app.mjs';
+import {createApp} from './app.mjs';
 import {createAuth} from './manage/auth.mjs';
 import {createApi, readBody} from './manage/api.mjs';
 import {createViews} from './manage/views.mjs';
@@ -13,7 +13,6 @@ import {render, CANONICAL} from './site/render.mjs';
 import {BY_KEY} from './registry/entities.mjs';
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
-const NOINDEX = SERVERLESS && process.env.NIXODOR_INDEX !== '1';
 const TYPES = {'.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon'};
 
 export function createHandler(app) {
@@ -90,11 +89,6 @@ export function createHandler(app) {
       // domeniul canonic (presupunerea 8): nixodor.ro → www.nixodor.ro
       const host = (req.headers.host ?? '').toLowerCase();
       if (host === 'nixodor.ro') return redirect(res, `${CANONICAL}${req.url}`);
-      // online, până la lansare: nimic nu se indexează (NIXODOR_INDEX=1 pornește indexarea)
-      if (NOINDEX) {
-        res.setHeader('x-robots-tag', 'noindex, nofollow');
-        if (p === '/robots.txt') return send(res, 200, 'User-agent: *\nDisallow: /\n', 'text/plain; charset=utf-8');
-      }
 
       // cu ?v= (versiune după conținut) fișierul nu se mai schimbă la aceeași adresă; fără ?v=, browserul revalidează
       if (p.startsWith('/assets/')) return serveFile(res, join(HERE, 'site/assets'), p.slice(8), url.searchParams.has('v') || p.startsWith('/assets/fonts/') ? 'public, max-age=31536000, immutable' : 'no-cache');
@@ -104,16 +98,13 @@ export function createHandler(app) {
         const m = p.match(/^\/media\/(\d+)\//);
         const rec = m && store.read('media', +m[1]);
         if (!rec) return send(res, 404, 'Not found', 'text/plain');
-        if (media.remote) return redirect(res, media.publicUrl(rec) + url.search);       // fișierul stă în Supabase Storage
         return serveFile(res, app.mediaDir, rec.file, url.searchParams.has('v') ? 'public, max-age=31536000, immutable' : 'public, max-age=3600');
       }
 
       if (p.startsWith('/api/manage/')) {
-        // Vercel Cron cheamă ruta cu GET și „Authorization: Bearer <CRON_SECRET>”; manual, cu POST și x-cron-key
-        if (p === '/api/manage/cron/tick' && (req.method === 'POST' || req.method === 'GET')) {
-          const key = process.env.CRON_SECRET ?? process.env.CRON_KEY;
-          const given = req.headers['x-cron-key'] ?? (req.headers.authorization ?? '').replace(/^Bearer /, '');
-          if (!(key && given === key) && !auth.user(req)?.perms.has('settings.write')) return send(res, 403, '{"error":"cheie de cron"}', 'application/json');
+        if (p === '/api/manage/cron/tick' && req.method === 'POST') {
+          const key = process.env.CRON_KEY;
+          if (!(key && req.headers['x-cron-key'] === key) && !auth.user(req)?.perms.has('settings.write')) return send(res, 403, '{"error":"cheie de cron"}', 'application/json');
           const done = sync.tick();
           return send(res, 200, JSON.stringify({events: done.length}), 'application/json');
         }
@@ -121,8 +112,6 @@ export function createHandler(app) {
         if (!user) return send(res, 401, JSON.stringify({error: 'Neautentificat'}), 'application/json');
         if (req.method !== 'GET' && !auth.sameOrigin(req)) return send(res, 403, JSON.stringify({error: 'Origine refuzată'}), 'application/json');
         if (p === '/api/manage/events') {
-          // o funcție serverless nu ține conexiuni deschise; 204 îi spune browserului să nu mai reîncerce
-          if (SERVERLESS) { res.writeHead(204); return res.end(); }
           res.writeHead(200, {'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive'});
           res.write(': conectat\n\n');
           sse.add(res);
