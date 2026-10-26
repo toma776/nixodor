@@ -187,10 +187,11 @@ function brandHero(ctx, s, h) {
     return `<li><a class="hero-tile accent-${ACCENT[l.accent] ?? 'green'}" href="${esc(link.href)}"><span class="pic">${img(ctx.media(l.card_image_id ?? l.hero_image_id), '', {eager: true, alt: ''})}</span>
       <span class="txt"><strong>${esc(l.short_name ?? l.name)}</strong><span>${esc(line1)}</span></span><span class="arr" aria-hidden="true">→</span></a></li>`;
   }).join('');
+  const count = (tiles.match(/class="hero-tile /g) ?? []).length;
   return `<section class="hero hero-brand on-dark">${bg ? `<div class="hero-bg">${img(bg, '', {eager: true, alt: ''})}</div>` : ''}
     <div class="wrap hero-grid"><div>${s.eyebrow ? `<p class="eyebrow">${esc(s.eyebrow)}</p>` : ''}<${h}>${esc(s.title ?? '')}</${h}>
     ${s.body ? `<div class="lead">${ctx.rich(s.body)}</div>` : ''}<div class="actions">${buttons(ctx, s.buttons, {first: 'btn big', rest: 'btn big secondary'})}</div></div>
-    ${tiles ? `<ul class="hero-tiles" role="list" aria-label="Produsele NIXODOR">${tiles}</ul>` : ''}</div></section>${trustStrip(ctx, null, s.producer_id)}`;
+    ${tiles ? `<ul class="hero-tiles${count > 4 ? ' many' : ''}" role="list" aria-label="Produsele NIXODOR">${tiles}</ul>` : ''}</div></section>${trustStrip(ctx, null, s.producer_id)}`;
 }
 
 // Reperele de sub erou: fiecare vine dintr-o entitate (producător, magazine, recenzii, beneficii), nu e text scris de mână.

@@ -72,3 +72,14 @@ Texte noi, de aprobat:
 - butoane: „De unde cumpăr”, „Despre NIXODOR”
 
 Stă ca ciornă pe secțiunea „hero” a paginii Acasă (`scripts/design/2026-10-26-hero-brand.mjs`): se vede în previzualizare și ajunge pe site la „Publică”.
+
+## Cele 5 game de pe Portalia (ciorne, 26.10.2026)
+
+Aer Curat, Aer Curat industrial, Aer Curat cai, Degresor bioenzimatic și Accelerator de compost au acum poza principală, descrierea și detaliile (compoziție, dozare, aplicare, păstrare, siguranță) copiate de pe pagina câte unui produs de la Portalia (`scripts/design/2026-10-26-game-portalia.mjs`, sursele în `reference/snapshot/external/portalia-pNNN.html`). Rămân ciorne: se văd în previzualizare și ajung pe site, în meniu, în cardurile de pe homepage și în eroul de brand doar după „Publică”.
+
+De aprobat, scrise de noi după descriere: promisiunea și textul cardului pentru fiecare gamă.
+
+De verificat cu clientul:
+- Etichetele spun „Producător: Instant SoftNet SRL sub licența Nourivit… Distribuitor: Instant SoftNet SRL, www.portalia.ro”: Portalia e chiar firma care face produsele.
+- Degresorul are un cod EAN cu alt prefix (7331898535958) decât restul gamei (5065000…) și nu menționează Nourivit: e posibil să fie făcut de alt producător.
+- Pozele de la Portalia au fundal alb; pe site se contopesc cu fundalul din CSS. Pentru calitate maximă, ar fi bune variantele transparente (PNG) de la client.
