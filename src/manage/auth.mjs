@@ -26,7 +26,15 @@ export function createAuth(db) {
         if (u) return asUser(u);
       }
       if (isLocal(req) && process.env.NIXODOR_LOCAL_ADMIN !== '0') return {id: null, name: 'Local', role: 'admin', perms: new Set(PERMS.admin), local: true};
+      if (this.panelKey(cookies(req).nx_acces)) return {id: null, name: 'Editor (link)', role: 'admin', perms: new Set(PERMS.admin)};
       return null;
+    },
+    // Acces fără cont, prin linkul secret /manage/?acces=<NIXODOR_PANEL_KEY> (cookie un an).
+    panelKey(value) {
+      const key = process.env.NIXODOR_PANEL_KEY;
+      if (!key || !value) return false;
+      const a = Buffer.from(String(value)), b = Buffer.from(key);
+      return a.length === b.length && timingSafeEqual(a, b);
     },
     login(email, password, ip) {
       const since = new Date(Date.now() - 15 * 60000).toISOString();

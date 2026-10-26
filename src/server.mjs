@@ -57,6 +57,10 @@ export function createHandler(app) {
       res.setHeader('set-cookie', `nx_session=${r.token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=1209600${req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : ''}`);
       return redirect(res, '/manage/', 303);
     }
+    if (auth.panelKey(url.searchParams.get('acces'))) {
+      res.setHeader('set-cookie', `nx_acces=${encodeURIComponent(url.searchParams.get('acces'))}; HttpOnly; SameSite=Lax; Path=/; Max-Age=31536000${req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : ''}`);
+      return redirect(res, '/manage/', 303);
+    }
     if (p === '/manage/logout/') { auth.logout(req); res.setHeader('set-cookie', 'nx_session=; Path=/; Max-Age=0'); return redirect(res, '/manage/login/', 303); }
     if (!user) return p === '/manage/login/' ? send(res, 200, views.login()) : redirect(res, '/manage/login/', 303);
     if (!user.perms.has('content.read')) return send(res, 403, 'Fără drept de citire', 'text/plain');
