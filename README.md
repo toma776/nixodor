@@ -1,6 +1,6 @@
 # NIXODOR — site + Brain /manage
 
-Site-ul nixodor.ro, randat pe server dintr-un Brain (SQLite), construit după **standardul Brain /manage v1** (15.10.2026). Node 24, `node:sqlite`; singura dependență e `@vercel/blob`, pentru deploy.
+Site-ul nixodor.ro, randat pe server dintr-un Brain (SQLite), construit după **standardul Brain /manage v1** (15.10.2026). Node 24, `node:sqlite`, fără dependențe.
 
 ```bash
 npm run setup     # import din snapshot + modificările de design din scripts/design/ (o instalare nouă)
@@ -30,26 +30,20 @@ npm test          # testele obligatorii din §5 (23) + verificarea iconițelor, 
 
 ## Online (Vercel)
 
-Site-ul și panoul rulează pe Vercel (proiectul `nixodor`, echipa dwf3): https://nixodor.vercel.app/. Deploy-ul pleacă singur la fiecare push pe `main`. Până la lansare, toate paginile au `x-robots-tag: noindex`.
+Site-ul și panoul rulează pe Vercel (proiectul `nixodor`, echipa dwf3): https://nixodor.vercel.app/. Până la lansare, toate paginile au `x-robots-tag: noindex` (verificat de `test/noindex.test.mjs`).
 
-- Codul e același ca local: `api/index.mjs` primește toate cererile. Baza `brain.db` stă într-un **Blob privat** (`nixodor-brain`), ținută în `/tmp` de fiecare instanță și reîncărcată când i se schimbă ETag-ul. După o salvare din panou, baza se urcă înapoi condiționat: dacă între timp a salvat altcineva, editorul primește „Reîncarcă și salvează din nou”, nu se pierde nimic.
-- Imaginile de la import sunt statice, în `public/media`, refăcute cu `npm run build:public`. Cele urcate din panou stau în Blob.
-- Cheia Blob vine pe calculator cu `npx vercel env pull .env.local`. Fișierul nu intră în git.
-
-**Local și online sunt sincronizate singure** cât rulează `npm start` (cu `.env.local` adus de `npx vercel env pull .env.local`):
-
-- ce salvezi în panoul local ajunge pe site-ul online în câteva secunde;
-- ce se salvează în panoul online apare local în cel mult 20 de secunde;
-- dacă s-a lucrat în ambele locuri între două sincronizări, nu se suprascrie nimic: panoul local arată un mesaj în care alegi varianta care rămâne (cealaltă se păstrează în `data/backup/` sau în Istoricul online).
-
-Starea sincronizării stă în `data/.blob-sync.json`. `NIXODOR_BLOB_SYNC=0 npm start` pornește serverul fără sincronizare. Comenzile manuale rămân pentru scripturi rulate cu serverul oprit:
+**Se lucrează local, se publică cu o comandă.** Conținutul se editează în panoul local (`npm start`, http://localhost:4310/manage/). Pe site ajunge cu:
 
 ```bash
-npm run blob:download          # aduce baza online (oprește întâi npm start)
-npm run blob:upload            # urcă baza locală; refuză dacă online s-a schimbat de la ultima sincronizare
-npm run blob:upload -- --force # urcă oricum, suprascriind ce s-a editat online
+npm run publish
 ```
+
+Comanda face o copie a bazei în `site-data/brain.db` (fără conturi, sesiuni și încercări de login, pentru că repository-ul e public), copiază toate fișierele media în `public/media/`, face commit și push; Vercel publică în aproximativ un minut. `npm run publish -- --local` doar pregătește fișierele.
+
+Codul (design, pagini, panou) ajunge pe site la fel, la fiecare push pe `main`.
+
+Online, `api/index.mjs` copiază baza din deploy în `/tmp` și o deschide: **panoul online e doar pentru citire**, iar orice salvare primește 403 cu explicația. Nu există stocare online și nicio limită de consum de care să depindă site-ul. (Varianta anterioară, cu baza într-un Vercel Blob, a depășit limitele planului gratuit; store-ul `nixodor-brain` a rămas în proiectul Vercel, nefolosit.)
 
 ## Acces la panou
 
-Pe `localhost`, `/manage` intră fără parolă, ca administrator (standard §1.9). Online, deocamdată, **panoul e deschis oricui** intră pe `https://nixodor.vercel.app/manage/`, fără cont: variabila `NIXODOR_PANEL_OPEN=1` din Vercel (Production). Ca să-l închizi, ștergi variabila și refaci deploy-ul. Conturile cu parolă rămân posibile (`npm run user -- add <email> "<Nume>" <rol>`), dar nu sunt folosite.
+Pe `localhost`, `/manage` intră fără parolă, ca administrator (standard §1.9). Online, panoul e deschis oricui intră pe `https://nixodor.vercel.app/manage/` (variabila `NIXODOR_PANEL_OPEN=1` din Vercel), dar doar pentru citire: nu se poate modifica nimic de acolo.

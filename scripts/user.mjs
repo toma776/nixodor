@@ -1,7 +1,7 @@
 // Conturile panoului /manage. Online, login-ul e obligatoriu; pe localhost nu e nevoie de cont.
 //   npm run user -- add <email> "<Nume>" <admin|editor|viewer>   parola: din NIXODOR_PASSWORD sau generată
 //   npm run user -- list
-// Scrie în baza locală; ajunge online cu „npm run blob:upload”.
+// Scrie în baza locală. Conturile nu ajung online: copia publicată (npm run publish) nu le conține.
 import {randomBytes} from 'node:crypto';
 import {createApp} from '../src/app.mjs';
 import {createAuth} from '../src/manage/auth.mjs';

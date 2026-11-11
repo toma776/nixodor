@@ -8,7 +8,7 @@
   "outputDirectory": "public",
   "functions": {
     "api/index.mjs": {
-      "includeFiles": "src/**",
+      "includeFiles": "{src,site-data}/**",
       "maxDuration": 60
     }
   },

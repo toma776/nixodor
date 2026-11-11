@@ -339,4 +339,5 @@ body.login { display: grid; place-items: center; min-height: 100vh; background: 
 .sync-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; justify-content: space-between; margin-bottom: 20px; padding: 14px 18px; border-radius: var(--r); border: 1px solid; }
 .sync-banner.err { background: var(--red-50); border-color: #f3c3bd; }
 .sync-banner.warn { background: var(--amber-50); border-color: #f0d79a; }
+.sync-banner.info { background: var(--teal-50); border-color: var(--teal-100); }
 .sync-banner > div:first-child { flex: 1 1 360px; }
