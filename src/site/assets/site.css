@@ -346,8 +346,66 @@ p { margin: 0 0 1em; }
 .player img.pack { object-fit: contain; padding: 6% 10%; }
 @media (max-width: 860px) { .about { grid-template-columns: 1fr; } }
 .store { padding: 26px; border: 1px solid var(--line); border-radius: var(--r); background: #fff; }
-.contact { display: grid; grid-template-columns: max-content 1fr; gap: 8px 20px; }
-.contact dt { font-weight: 600; } .contact dd { margin: 0; }
+/* --- pagina de contact --- */
+.contact-hero { padding: clamp(48px, 7vw, 88px) 0 clamp(96px, 11vw, 140px); color: #fff;
+  background: radial-gradient(55% 90% at 90% 10%, rgba(120, 190, 67, .26), transparent 60%), radial-gradient(45% 80% at 100% 100%, rgba(38, 154, 199, .28), transparent 60%), var(--teal-900); }
+.contact-hero h1 { color: #fff; margin: 0; max-width: 18ch; }
+.contact-hero .eyebrow { color: #a9dc84; }
+.contact-hero .lead { max-width: 640px; margin-top: 16px; color: rgba(255, 255, 255, .84); font-size: 1.08rem; }
+.contact-hero .lead p { margin: 0; }
+.contact-main { padding-top: 0; }
+.contact-grid { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); gap: clamp(20px, 3vw, 36px); align-items: start; margin-top: clamp(-96px, -8vw, -64px); }
+.contact-info { display: grid; gap: 16px; }
+.ci-list { list-style: none; margin: 0; padding: 8px 24px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-2); }
+.ci { display: flex; gap: 16px; padding: 18px 0; border-top: 1px solid var(--line); }
+.ci:first-child { border-top: 0; }
+.ci .ico, .ci-buy .ico { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: var(--green-50); color: var(--green-700); }
+.ci .ico svg, .ci-buy .ico svg { width: 22px; height: 22px; }
+.ci > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ci-label { font-size: .78rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.ci-value { font-size: 1.08rem; font-weight: 600; color: var(--ink); text-decoration: none; overflow-wrap: anywhere; }
+a.ci-value:hover { color: var(--green-700); text-decoration: underline; }
+.ci-note { font-size: .9rem; color: var(--ink-2); }
+.ci-note.link-arrow { color: var(--green-700); font-weight: 600; text-decoration: none; margin-top: 4px; }
+.ci-buy { display: flex; gap: 16px; padding: 22px 24px; border-radius: var(--r-lg); background: var(--orange-50); }
+.ci-buy .ico { background: #fff; color: var(--orange-700); }
+.ci-buy strong { font-size: 1.05rem; }
+.ci-buy p { margin: 4px 0 8px; color: var(--ink-2); font-size: .95rem; }
+.ci-buy .link-arrow { color: var(--orange-700); font-weight: 600; text-decoration: none; }
+.ci-social { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; border: 1px solid var(--line); border-radius: var(--r-lg); background: #fff; }
+.ci-social .socials { margin: 0; }
+.ci-social .social { color: var(--teal-900); background: var(--teal-50); border-color: transparent; }
+.ci-social .social:hover { background: var(--teal-900); color: #fff; }
+.contact-form-card { position: relative; padding: clamp(24px, 3.5vw, 44px); background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-2); }
+.contact-form-card h2 { margin: 0; font-size: clamp(1.5rem, 2.4vw, 1.9rem); }
+.form-intro { margin: 8px 0 24px; color: var(--ink-2); }
+.req { color: var(--orange-700); font-weight: 700; }
+.opt { color: var(--muted); font-weight: 400; font-size: .88rem; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 20px; }
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field.wide { grid-column: 1 / -1; }
+.field > label { font-weight: 600; font-size: .95rem; }
+.field input:not([type=checkbox]), .field select, .field textarea { width: 100%; font: inherit; font-size: 1rem; color: var(--ink); background: var(--paper-2); border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 15px; transition: border-color .15s, background .15s, box-shadow .15s; }
+.field textarea { resize: vertical; min-height: 140px; }
+.field select { appearance: none; padding-right: 42px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23004054' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 18px; }
+.field input:hover, .field select:hover, .field textarea:hover { border-color: #c3d3d2; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--teal-800); background: #fff; box-shadow: 0 0 0 4px var(--teal-50); }
+.field .err { display: none; font-size: .87rem; color: #b42318; font-weight: 500; }
+.field.invalid .err { display: block; }
+.field.invalid input:not([type=checkbox]), .field.invalid select, .field.invalid textarea { border-color: #d92d20; background: #fff8f7; }
+.field.check label { display: flex; gap: 12px; align-items: flex-start; font-weight: 400; font-size: .93rem; color: var(--ink-2); line-height: 1.55; cursor: pointer; }
+.field.check input { flex: none; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--teal-900); }
+.field.check.invalid label { color: #b42318; }
+.form-actions { margin-top: 24px; }
+.form-actions .btn svg { width: 18px; height: 18px; }
+.form-actions .btn.busy { opacity: .7; cursor: progress; }
+.form-done { text-align: center; padding: clamp(24px, 5vw, 56px) 8px; outline: none; }
+.form-done .ico { display: inline-grid; place-items: center; width: 68px; height: 68px; border-radius: 50%; background: var(--green-50); color: var(--green-700); }
+.form-done .ico svg { width: 34px; height: 34px; }
+.form-done h3 { margin: 18px 0 8px; font-size: 1.6rem; }
+.form-done p { max-width: 44ch; margin: 0 auto 24px; color: var(--ink-2); }
+@media (max-width: 900px) { .contact-grid { grid-template-columns: 1fr; } .contact-form-card { order: -1; } }
+@media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } .form-actions .btn { width: 100%; } }
 .prose { overflow-wrap: anywhere; }
 .prose ul { padding-left: 1.2em; } .prose li { margin: .35em 0; }
 .prose img.feature { border-radius: var(--r); margin: 20px 0 28px; width: 100%; }

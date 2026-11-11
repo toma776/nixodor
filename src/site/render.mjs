@@ -215,6 +215,80 @@ function trustStrip(ctx, line, producerId) {
   return `<div class="trust"><div class="wrap"><ul>${items.map(([ic, strong, small]) => `<li><span class="ico">${icon(ic)}</span><span><strong>${esc(strong)}</strong>${esc(small)}</span></li>`).join('')}</ul></div></div>`;
 }
 
+// --- pagina de contact: datele firmei + formular ------------------------------------
+// Formularul e deocamdată de prezentare (11.11.2026): validează în browser și arată confirmarea, dar nu trimite nimic.
+// Când se alege un serviciu de email, scriptul trimite la /api/contact în loc de confirmarea locală.
+const CONTACT_JS = `<script>(function(){var f=document.querySelector('form.contact-form');if(!f)return;
+var btn=f.querySelector('button[type=submit]'),done=f.parentNode.querySelector('.form-done');
+function valid(el){return el.type==='checkbox'?el.checked:el.value.trim()!==''&&el.checkValidity();}
+f.addEventListener('submit',function(e){e.preventDefault();var bad=null;
+f.querySelectorAll('[required]').forEach(function(el){var ok=valid(el);el.closest('.field').classList.toggle('invalid',!ok);el.setAttribute('aria-invalid',ok?'false':'true');if(!ok&&!bad)bad=el;});
+if(bad){bad.focus();return;}
+btn.disabled=true;btn.classList.add('busy');
+setTimeout(function(){var n=f.elements.nume.value.trim().split(/\\s+/)[0];done.querySelector('[data-name]').textContent=n?', '+n:'';f.hidden=true;done.hidden=false;done.focus();},700);});
+f.addEventListener('input',function(e){if(e.target.required&&valid(e.target)){e.target.closest('.field').classList.remove('invalid');e.target.setAttribute('aria-invalid','false');}});
+f.addEventListener('change',function(e){if(e.target.required&&valid(e.target)){e.target.closest('.field').classList.remove('invalid');e.target.setAttribute('aria-invalid','false');}});
+done.querySelector('[data-reset]').addEventListener('click',function(){f.reset();btn.disabled=false;btn.classList.remove('busy');done.hidden=true;f.hidden=false;f.elements.nume.focus();});
+})();</script>`;
+
+function contactSection(ctx, s, h) {
+  const f = ctx.one('firma', 'datele de contact');
+  const lines = ctx.query('game', {order: 'position, id', fields: ['status', 'position', 'name'], reason: 'gamele din formularul de contact'});
+  const privacy = ctx.query('pagini', {where: {slug: 'politica-de-confidentialitate'}, fields: ['slug', 'status'], reason: 'acordul GDPR din formular'})[0];
+  const privacyHref = privacy ? ctx.href(`ref:pagini:${privacy.id}`, 'politica de confidențialitate') : null;
+  const buy = ctx.query('pagini', {where: {slug: 'de-unde-cumpar'}, fields: ['slug', 'status', 'title'], reason: 'unde se fac comenzile'})[0];
+  const buyHref = buy ? ctx.href(`ref:pagini:${buy.id}`, 'de unde cumpăr') : null;
+  const tel = f?.phone?.replace(/\s/g, '');
+  const maps = f?.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(f.address)}` : null;
+  const card = (ic, label, value, extra = '') => `<li class="ci"><span class="ico">${icon(ic)}</span><div><span class="ci-label">${label}</span>${value}${extra}</div></li>`;
+  const legal = [f?.cui && `CUI ${esc(f.cui)}`, f?.reg_com && `Reg. Com. ${esc(f.reg_com)}`].filter(Boolean).join(' · ');
+  const socials = (f?.socials ?? []).map(x => {
+    const svg = SOCIAL_SVG[(x.label ?? '').toLowerCase()];
+    return `<a href="${esc(x.to)}" target="_blank" rel="noopener" class="social" aria-label="${esc(x.label)} (se deschide într-o filă nouă)">${svg ? `<svg viewBox="0 0 24 24" aria-hidden="true">${svg}</svg>` : esc(x.label)}</a>`;
+  }).join('');
+  const field = (name, label, input, {req = false, wide = false} = {}) =>
+    `<div class="field${wide ? ' wide' : ''}"><label for="cf-${name}">${label}${req ? ' <span class="req" aria-hidden="true">*</span>' : ' <span class="opt">(opțional)</span>'}</label>${input}${req ? `<span class="err" id="cf-${name}-err">${name === 'email' ? 'Scrie o adresă de email validă.' : 'Câmpul e obligatoriu.'}</span>` : ''}</div>`;
+  const inp = (name, type, req, auto, extra = '') => `<input id="cf-${name}" name="${name}" type="${type}"${req ? ` required aria-describedby="cf-${name}-err"` : ''} autocomplete="${auto}"${extra}>`;
+
+  const html = `<section class="contact-hero"><div class="wrap">
+      <p class="eyebrow">${esc(s.eyebrow ?? 'Contact')}</p><${h}>${esc(s.title ?? 'Vorbește cu noi')}</${h}>${s.body ? `<div class="lead">${ctx.rich(s.body)}</div>` : ''}
+    </div></section>
+    <section class="section contact-main"><div class="wrap contact-grid">
+      <aside class="contact-info" aria-label="Datele de contact">
+        <ul class="ci-list" role="list">
+          ${f?.phone ? card('phone', 'Telefon', `<a class="ci-value" href="tel:${esc(tel)}">${esc(f.phone)}</a>`, '<span class="ci-note">Luni – vineri, în timpul programului de lucru</span>') : ''}
+          ${f?.email ? card('mail', 'Email', `<a class="ci-value" href="mailto:${esc(f.email)}">${esc(f.email)}</a>`, '<span class="ci-note">Răspundem de obicei în aceeași zi lucrătoare</span>') : ''}
+          ${f?.address ? card('pin', 'Sediul', `<span class="ci-value">${esc(f.address)}</span>`, maps ? `<a class="ci-note link-arrow" href="${esc(maps)}" target="_blank" rel="noopener">Vezi pe hartă <span class="arr" aria-hidden="true">→</span></a>` : '') : ''}
+          ${f?.legal_name ? card('firm', 'Firma', `<span class="ci-value">${esc(f.legal_name)}</span>`, legal ? `<span class="ci-note">${legal}</span>` : '') : ''}
+        </ul>
+        ${buyHref ? `<div class="ci-buy"><span class="ico">${icon('bag')}</span><div><strong>Vrei să comanzi?</strong><p>Produsele NIXODOR se cumpără de la magazinele partenere, cu livrare în toată țara.</p>
+          <a class="link-arrow" href="${esc(buyHref)}">De unde cumpăr <span class="arr" aria-hidden="true">→</span></a></div></div>` : ''}
+        ${socials ? `<div class="ci-social"><span class="ci-label">Urmărește-ne</span><div class="socials">${socials}</div></div>` : ''}
+      </aside>
+      <div class="contact-form-card">
+        <h2>Trimite-ne un mesaj</h2>
+        <p class="form-intro">Completează formularul și revenim cu un răspuns cât mai curând. Câmpurile marcate cu <span class="req">*</span> sunt obligatorii.</p>
+        <form class="contact-form" action="#" method="post" novalidate>
+          <div class="form-grid">
+            ${field('nume', 'Nume și prenume', inp('nume', 'text', true, 'name'), {req: true})}
+            ${field('email', 'Email', inp('email', 'email', true, 'email'), {req: true})}
+            ${field('telefon', 'Telefon', inp('telefon', 'tel', false, 'tel', ' inputmode="tel"'))}
+            ${field('subiect', 'Subiect', `<select id="cf-subiect" name="subiect" required aria-describedby="cf-subiect-err"><option value="">Alege subiectul</option>
+              <option>Întrebare despre un produs</option><option>Comandă sau livrare</option><option>Distribuție și parteneriate</option><option>Sugestie sau reclamație</option><option>Altceva</option></select>`, {req: true})}
+            ${lines.length ? field('produs', 'Produsul despre care întrebi', `<select id="cf-produs" name="produs"><option value="">Niciun produs anume</option>${lines.map(l => `<option>${esc(l.name)}</option>`).join('')}</select>`, {wide: true}) : ''}
+            ${field('mesaj', 'Mesajul tău', `<textarea id="cf-mesaj" name="mesaj" rows="6" required aria-describedby="cf-mesaj-err"></textarea>`, {req: true, wide: true})}
+            <div class="field wide check"><label><input type="checkbox" name="acord" required aria-describedby="cf-acord-err"> <span>Sunt de acord ca datele mele să fie folosite pentru a primi un răspuns, conform ${privacyHref ? `<a href="${esc(privacyHref)}">politicii de confidențialitate</a>` : 'politicii de confidențialitate'} (Regulamentul UE 2016/679, GDPR). <span class="req" aria-hidden="true">*</span></span></label><span class="err" id="cf-acord-err">Avem nevoie de acordul tău ca să-ți putem răspunde.</span></div>
+          </div>
+          <div class="form-actions"><button class="btn big" type="submit">Trimite mesajul <span class="arr" aria-hidden="true">${icon('send')}</span></button></div>
+        </form>
+        <div class="form-done" hidden tabindex="-1" role="status"><span class="ico">${icon('check')}</span><h3>Mulțumim<span data-name></span>!</h3>
+          <p>Am primit mesajul tău și revenim cu un răspuns cât mai curând${f?.phone ? `. Dacă e urgent, sună-ne la <a href="tel:${esc(tel)}">${esc(f.phone)}</a>` : ''}.</p>
+          <button type="button" class="btn secondary" data-reset>Trimite alt mesaj</button></div>
+      </div>
+    </div></section>`;
+  return {html, script: CONTACT_JS};
+}
+
 // --- tipuri de pagini ---------------------------------------------------------------
 function pagina(ctx, p) {
   const sections = ctx.links('pagini', p.id, 'sections', 'secțiunile paginii');
@@ -260,13 +334,7 @@ function pagina(ctx, p) {
           ${m.pickup_url ? `<p><a href="${esc(m.pickup_url)}" target="_blank" rel="noopener">Puncte de ridicare</a></p>` : ''}
           ${m.url ? `<p><a class="btn" href="${esc(m.url)}" target="_blank" rel="noopener">Cumpără de la ${esc(m.name)} <span class="arr" aria-hidden="true">→</span></a></p>` : ''}</div>`).join('')}</div></div></section>`;
       }
-      case 'contact': {
-        const f = ctx.one('firma', 'datele de contact');
-        return `<section class="section"><div class="wrap narrow">${s.title ? `<${h}>${esc(s.title)}</${h}>` : ''}${ctx.rich(s.body)}
-          <dl class="contact"><dt>Firma</dt><dd>${esc(f?.legal_name)}</dd><dt>Sediu</dt><dd>${esc(f?.address)}</dd>
-          ${f?.phone ? `<dt>Telefon</dt><dd><a href="tel:${esc(f.phone.replace(/\s/g, ''))}">${esc(f.phone)}</a></dd>` : ''}
-          ${f?.email ? `<dt>Email</dt><dd><a href="mailto:${esc(f.email)}">${esc(f.email)}</a></dd>` : ''}</dl></div></section>`;
-      }
+      case 'contact': { const r = contactSection(ctx, s, h); scripts += r.script; return r.html; }
       case 'insigna-producator': {
         const pr = ctx.get('producatori', s.producer_id, 'producătorul');
         if (!pr) return '';

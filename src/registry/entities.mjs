@@ -175,7 +175,7 @@ export const ENTITIES = [
     fields: [
       {key: 'kind', label: 'Tipul secțiunii', type: 'select', required: true, list: true,
        options: ['hero', 'beneficii', 'carduri-game', 'video', 'recenzii', 'text', 'cta', 'magazine', 'contact', 'insigna-producator', 'articole']},
-      {key: 'eyebrow', label: 'Supratitlu', type: 'text', kinds: ['hero', 'beneficii', 'carduri-game', 'video', 'recenzii', 'cta', 'insigna-producator', 'articole', 'magazine']},
+      {key: 'eyebrow', label: 'Supratitlu', type: 'text', kinds: ['hero', 'beneficii', 'carduri-game', 'video', 'recenzii', 'cta', 'insigna-producator', 'articole', 'magazine', 'contact']},
       {key: 'title', label: 'Titlu', type: 'text', list: true},
       {key: 'body', label: 'Text', type: 'richtext', kinds: ['hero', 'beneficii', 'carduri-game', 'video', 'text', 'cta', 'contact', 'insigna-producator', 'magazine']},
       {key: 'image_id', label: 'Imagine de fundal', type: 'image', kinds: ['hero', 'video']},
